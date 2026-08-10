@@ -1,0 +1,33 @@
+
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>FINX CLUB — Plateforme GIE</title>
+      <meta name="description" content="Plateforme FINX CLUB pour la gestion des adhésions, événements, investissements et espaces membres." />
+      <meta name="robots" content="noindex, nofollow" />
+      <link rel="icon" type="image/png" href="/symbol-finx.png" />
+      <script>
+        (function () {
+          try {
+            var t = localStorage.getItem('finx-theme-version');
+            document.documentElement.setAttribute('data-theme', t === 'v1' ? 'v1' : 'v2');
+          } catch (e) {
+            document.documentElement.setAttribute('data-theme', 'v2');
+          }
+        })();
+      </script>
+      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+      
+    </head>
+
+    <body>
+      
+      <div id="root"></div>
+      <script type="module" src="/src/main.tsx"></script>
+      
+    </body>
+  </html>
+  
