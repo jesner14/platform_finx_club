@@ -68,6 +68,7 @@ function readStored(): ThemeVersion {
   } catch {
     /* ignore */
   }
+  // Fonctionnalité membres : V2 (bleu / blanc / jaune) par défaut
   return "v2";
 }
 
