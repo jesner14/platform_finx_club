@@ -7,7 +7,16 @@ export type ScreenKey =
   | "participations"
   | "sessions"
   | "mon-espace"
-  | "parametres";
+  | "parametres"
+  | "depots"
+  | "valeur-liquidative"
+  | "retraits"
+  | "solde-parts"
+  | "etat-parts"
+  | "valeur-portefeuille"
+  | "historique-performances"
+  | "historique-montants-investis"
+  | "historique-capitaux-nets";
 
 export type MemberStatus =
   | "invite"
@@ -94,12 +103,16 @@ export interface ProgressionParams {
   seuilInvestisseurFcfa: number;
   engagementMensuelConfirmeFcfa: number;
   niveauMinGouvernance: number;
+  /** Si faux, le membre ne voit que la dernière VL */
+  membreVoitToutesValeursLiquidatives: boolean;
 }
 
 export interface Member {
   id: string;
+  matricule: string;
   nom: string;
-  email: string;
+  email: string | null;
+  username?: string | null;
   avatar: string;
   statut: MemberStatus;
   niveau: number;
@@ -119,16 +132,38 @@ export interface Member {
   denyScreens: ScreenKey[];
 }
 
-export const ALL_SCREENS: { key: ScreenKey; label: string; group: string }[] = [
+export const ALL_SCREENS: { key: ScreenKey; label: string; group: string; parent?: ScreenKey }[] = [
   { key: "accueil", label: "Tableau de bord", group: "Principal" },
   { key: "membres", label: "Membres", group: "Gestion" },
-  { key: "roles", label: "Rôles & privilèges", group: "Gestion" },
-  { key: "gouvernance", label: "Gouvernance", group: "Gestion" },
-  { key: "participations", label: "Participations", group: "Suivi" },
-  { key: "sessions", label: "Sessions réservées", group: "Suivi" },
+  { key: "roles", label: "Rôles & privilèges", group: "Gestion", parent: "membres" },
+  { key: "gouvernance", label: "Gouvernance", group: "Gestion", parent: "membres" },
+  { key: "participations", label: "Participations", group: "Gestion", parent: "membres" },
+  { key: "sessions", label: "Sessions réservées", group: "Gestion", parent: "membres" },
   { key: "mon-espace", label: "Mon Espace", group: "Membre" },
+  { key: "depots", label: "Dépôts", group: "Admin" },
+  { key: "valeur-liquidative", label: "Valeur liquidative", group: "Admin" },
+  { key: "retraits", label: "Retraits", group: "Admin" },
+  { key: "solde-parts", label: "Solde des parts", group: "Admin" },
+  { key: "etat-parts", label: "État des parts", group: "Admin" },
+  { key: "valeur-portefeuille", label: "Valeur du portefeuille", group: "Admin" },
+  { key: "historique-performances", label: "Historique des performances", group: "Admin" },
+  { key: "historique-montants-investis", label: "Historique des montants investis", group: "Admin" },
+  { key: "historique-capitaux-nets", label: "Historique des capitaux nets", group: "Admin" },
   { key: "parametres", label: "Paramètres progression", group: "Admin" },
 ];
+
+export const MEMBER_SUBMENUS = ALL_SCREENS.filter((s) => s.parent === "membres");
+
+export const DEFAULT_PARAMS: ProgressionParams = {
+  participationsParNiveau: { 1: 2, 2: 4, 3: 6, 4: 8, 5: 10 },
+  participationsPourConfirme: 6,
+  absencesAvantRetrogradation: 2,
+  presencesPourRecuperation: 2,
+  seuilInvestisseurFcfa: 500_000,
+  engagementMensuelConfirmeFcfa: 50_000,
+  niveauMinGouvernance: 3,
+  membreVoitToutesValeursLiquidatives: true,
+};
 
 export const STATUS_LABELS: Record<MemberStatus, string> = {
   invite: "Invité / Visiteur",

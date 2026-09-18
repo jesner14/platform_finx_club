@@ -8,9 +8,10 @@ import {
   type ReactNode,
 } from "react";
 
-export type ThemeVersion = "v1" | "v2";
+export const THEME_VERSIONS = ["v1", "v2", "v3"] as const;
+export type ThemeVersion = (typeof THEME_VERSIONS)[number];
 
-const STORAGE_KEY = "finx-theme-version";
+const STORAGE_KEY = "finx-theme-version-r2";
 
 export interface BrandPalette {
   navy: string;
@@ -28,18 +29,6 @@ export interface BrandPalette {
 const PALETTES: Record<ThemeVersion, BrandPalette> = {
   v1: {
     navy: "#0B1B59",
-    accent: "#01AAE4",
-    premium: "#F5D251",
-    muted: "#8FA3C8",
-    card: "#0B1B59",
-    border: "rgba(1,170,228,0.22)",
-    chartStroke: "#01AAE4",
-    chartFill: "#01AAE4",
-    grid: "rgba(255,255,255,0.06)",
-    allocation: ["#01AAE4", "#0B1B59", "#F5D251", "#4DB8E8", "#8FA3C8"],
-  },
-  v2: {
-    navy: "#0B1B59",
     accent: "#0B1B59",
     premium: "#F5D251",
     muted: "#5A6B8C",
@@ -50,6 +39,30 @@ const PALETTES: Record<ThemeVersion, BrandPalette> = {
     grid: "rgba(11,27,89,0.08)",
     allocation: ["#0B1B59", "#F5D251", "#01AAE4", "#3D4F8C", "#C5CDD9"],
   },
+  v2: {
+    navy: "#0B1B59",
+    accent: "#F5D251",
+    premium: "#F5D251",
+    muted: "#5A6B8C",
+    card: "#FFFFFF",
+    border: "rgba(11,27,89,0.08)",
+    chartStroke: "#0B1B59",
+    chartFill: "#F5D251",
+    grid: "rgba(11,27,89,0.08)",
+    allocation: ["#0B1B59", "#F5D251", "#01AAE4", "#3D4F8C", "#C5CDD9"],
+  },
+  v3: {
+    navy: "#0B1B59",
+    accent: "#FFFFFF",
+    premium: "#F5D251",
+    muted: "#5A6B8C",
+    card: "rgba(255,255,255,0.62)",
+    border: "rgba(255,255,255,0.7)",
+    chartStroke: "#0B1B59",
+    chartFill: "#01AAE4",
+    grid: "rgba(11,27,89,0.08)",
+    allocation: ["#0B1B59", "#FFFFFF", "#01AAE4", "#F5D251", "#3D4F8C"],
+  },
 };
 
 interface ThemeContextValue {
@@ -57,6 +70,7 @@ interface ThemeContextValue {
   setTheme: (t: ThemeVersion) => void;
   brand: BrandPalette;
   isV2: boolean;
+  isV3: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -64,17 +78,16 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 function readStored(): ThemeVersion {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "v1" || v === "v2") return v;
+    if (v === "v1" || v === "v2" || v === "v3") return v;
   } catch {
     /* ignore */
   }
-  // Fonctionnalité membres : V2 (bleu / blanc / jaune) par défaut
-  return "v2";
+  return "v1";
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeVersion>(() =>
-    typeof window !== "undefined" ? readStored() : "v2",
+    typeof window !== "undefined" ? readStored() : "v1",
   );
 
   useEffect(() => {
@@ -94,6 +107,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setTheme,
       brand: PALETTES[theme],
       isV2: theme === "v2",
+      isV3: theme === "v3",
     }),
     [theme, setTheme],
   );

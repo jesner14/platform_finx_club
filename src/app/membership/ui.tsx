@@ -3,7 +3,7 @@ import type { MemberStatus } from "./types";
 import { STATUS_LABELS } from "./types";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <div className={`bg-card border border-border rounded-lg ${className}`}>{children}</div>;
+  return <div className={`finx-card bg-card border border-border rounded-lg ${className}`}>{children}</div>;
 }
 
 export function SectionTitle({ label, title, subtitle }: { label: string; title: string; subtitle?: string }) {
@@ -50,11 +50,25 @@ export function StatusBadge({ statut }: { statut: MemberStatus }) {
   return <Badge variant={statusVariant(statut)}>{STATUS_LABELS[statut]}</Badge>;
 }
 
-export function Field({ label, children }: { label: string; children: ReactNode }) {
+export function Field({
+  label,
+  children,
+  error,
+  required,
+}: {
+  label: string;
+  children: ReactNode;
+  error?: string;
+  required?: boolean;
+}) {
   return (
     <label className="block space-y-1">
-      <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">{label}</span>
+      <span className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+        {label}
+        {required && <span className="text-red-600"> *</span>}
+      </span>
       {children}
+      {error && <span className="block text-[11px] text-red-600">{error}</span>}
     </label>
   );
 }
@@ -72,3 +86,95 @@ export function roleTone(tone: string) {
 
 export const fieldClass =
   "finx-select w-full bg-white border border-border rounded px-3 py-2 text-xs text-[#0B1B59] focus:outline-none focus:border-primary/50";
+
+export function fieldInputClass(error?: string) {
+  return `${fieldClass} ${error ? "border-red-500/70 focus:border-red-500" : ""}`;
+}
+
+export function Spinner({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-block animate-spin rounded-full border-2 border-primary/25 border-t-primary ${className}`}
+      aria-hidden
+    />
+  );
+}
+
+export function PageLoader({ label = "Chargement…" }: { label?: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-24 gap-3">
+      <Spinner className="h-9 w-9 border-[3px]" />
+      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
+export function EmptyState({ text }: { text: string }) {
+  return (
+    <p className="text-sm text-muted-foreground py-10 text-center px-4">{text}</p>
+  );
+}
+
+export function SavingOverlay({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-background/50 backdrop-blur-[1px]">
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card finx-card px-4 py-3 shadow-sm">
+        <Spinner />
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Enregistrement…</span>
+      </div>
+    </div>
+  );
+}
+
+export function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel = "Supprimer",
+  cancelLabel = "Annuler",
+  busy,
+  error,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  busy?: boolean;
+  error?: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+      <div className="bg-card finx-card border border-border rounded-xl w-full max-w-sm p-5 space-y-4">
+        <h3 className="font-display text-lg font-bold uppercase text-foreground">{title}</h3>
+        <p className="text-sm text-muted-foreground">{message}</p>
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onCancel}
+            className="px-3 py-2 text-xs border border-border rounded text-muted-foreground disabled:opacity-60"
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConfirm}
+            className="px-4 py-2 text-xs bg-red-600 text-white rounded font-medium disabled:opacity-60 flex items-center gap-2"
+          >
+            {busy && <Spinner className="h-3 w-3 border-white/40 border-t-white" />}
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

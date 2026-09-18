@@ -12,10 +12,10 @@
       <script>
         (function () {
           try {
-            var t = localStorage.getItem('finx-theme-version');
-            document.documentElement.setAttribute('data-theme', t === 'v1' ? 'v1' : 'v2');
+            var t = localStorage.getItem('finx-theme-version-r2');
+            document.documentElement.setAttribute('data-theme', t === 'v2' ? 'v2' : 'v1');
           } catch (e) {
-            document.documentElement.setAttribute('data-theme', 'v2');
+            document.documentElement.setAttribute('data-theme', 'v1');
           }
         })();
       </script>

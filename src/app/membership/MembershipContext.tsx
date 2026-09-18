@@ -2,24 +2,17 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from "react";
-import {
-  INITIAL_HISTORY,
-  INITIAL_MEMBERS,
-  INITIAL_PARAMS,
-  INITIAL_PARTICIPATIONS,
-  INITIAL_ROLES,
-  INITIAL_SESSIONS,
-} from "./seed";
+import { api, ApiError } from "../api";
+import { useAuth, type AuthUser } from "../auth/AuthContext";
 import type {
   FonctionGouvernance,
-  FonctionType,
   HistoriqueStatut,
   Member,
-  MemberStatus,
   Participation,
   ParticipationType,
   ProgressionParams,
@@ -27,9 +20,33 @@ import type {
   ScreenKey,
   SessionReservee,
 } from "./types";
-import { ALL_SCREENS } from "./types";
+import { ALL_SCREENS, DEFAULT_PARAMS } from "./types";
+
+export type HistoriquePath =
+  | "historiques-performances"
+  | "historiques-montants-investis"
+  | "historiques-capitaux-nets";
+
+export interface ImportReport {
+  membersCreated: number;
+  membersMatched: number;
+  depositsUpserted: number;
+  createdMatricules: string[];
+}
+
+interface ClubSnapshot {
+  members: Member[];
+  roles: Role[];
+  params: ProgressionParams;
+  participations: Participation[];
+  history: HistoriqueStatut[];
+  sessions: SessionReservee[];
+}
 
 interface MembershipContextValue {
+  loading: boolean;
+  saving: boolean;
+  error: string | null;
   members: Member[];
   roles: Role[];
   params: ProgressionParams;
@@ -41,26 +58,58 @@ interface MembershipContextValue {
   currentRole: Role;
   effectiveScreens: ScreenKey[];
   canAccess: (screen: ScreenKey) => boolean;
-  setCurrentUserId: (id: string) => void;
-  addMember: (data: Omit<Member, "id" | "avatar" | "fonctions" | "nbPresences" | "nbAbsences" | "consecutives" | "enRecuperation" | "groupes"> & Partial<Member>) => void;
-  updateMember: (id: string, patch: Partial<Member>) => void;
-  removeMember: (id: string) => void;
-  updateRoleScreens: (roleId: string, screens: ScreenKey[]) => void;
-  addRole: (role: Omit<Role, "id"> & { id?: string }) => void;
-  updateParams: (patch: Partial<ProgressionParams>) => void;
+  reload: () => Promise<void>;
+  addMember: (data: Omit<Member, "id" | "avatar" | "fonctions" | "nbPresences" | "nbAbsences" | "consecutives" | "enRecuperation" | "groupes"> & Partial<Member> & { username: string; password: string }) => Promise<string | null>;
+  updateMember: (id: string, patch: Partial<Member> & { password?: string }) => Promise<string | null>;
+  updateMyProfile: (input: { nom: string; email: string; username: string; password?: string }) => Promise<string | null>;
+  removeMember: (id: string) => Promise<string | null>;
+  removeMembers: (ids: string[]) => Promise<string | null>;
+  updateRoleScreens: (roleId: string, screens: ScreenKey[]) => Promise<string | null>;
+  addRole: (role: Omit<Role, "id"> & { id?: string }) => Promise<string | null>;
+  updateParams: (patch: Partial<ProgressionParams>) => Promise<string | null>;
   recordParticipation: (input: {
     memberId: string;
     type: ParticipationType;
     titre: string;
     present: boolean;
     date?: string;
-  }) => void;
-  nominateFonction: (memberId: string, data: Omit<FonctionGouvernance, "id" | "active">) => string | null;
-  endFonction: (memberId: string, fonctionId: string) => void;
-  toggleSessionInscription: (sessionId: string, memberId: string) => string | null;
+  }) => Promise<string | null>;
+  nominateFonction: (memberId: string, data: Omit<FonctionGouvernance, "id" | "active">) => Promise<string | null>;
+  endFonction: (memberId: string, fonctionId: string) => Promise<string | null>;
+  toggleSessionInscription: (sessionId: string, memberId: string) => Promise<string | null>;
+  importDepots: (file: File) => Promise<{ report: ImportReport | null; error: string | null }>;
+  createDepot: (input: { memberId: string; date: string; montant: number }) => Promise<string | null>;
+  deleteAllDepots: () => Promise<{ deleted: number; error: string | null }>;
+  importRetraits: (file: File) => Promise<{ report: ImportReport | null; error: string | null }>;
+  createRetrait: (input: { memberId: string; date: string; montant: number }) => Promise<string | null>;
+  deleteAllRetraits: () => Promise<{ deleted: number; error: string | null }>;
+  importSoldesParts: (file: File) => Promise<{ report: ImportReport | null; error: string | null }>;
+  createSoldePart: (input: { memberId: string; date: string; nombreParts: number }) => Promise<string | null>;
+  deleteAllSoldesParts: () => Promise<{ deleted: number; error: string | null }>;
+  importEtatsParts: (file: File) => Promise<{ report: ImportReport | null; error: string | null }>;
+  createEtatPart: (input: { memberId: string; date: string; nombreParts: number }) => Promise<string | null>;
+  deleteAllEtatsParts: () => Promise<{ deleted: number; error: string | null }>;
+  importPortefeuille: (file: File) => Promise<{ report: { upserted: number; skipped: number } | null; error: string | null }>;
+  createPortefeuilleLigne: (input: { symbole: string; titre: string; secteur?: string }) => Promise<string | null>;
+  deleteAllPortefeuille: () => Promise<{ deleted: number; error: string | null }>;
+  importHistorique: (path: HistoriquePath, file: File) => Promise<{ report: ImportReport | null; error: string | null }>;
+  createHistorique: (path: HistoriquePath, input: { memberId: string; date: string; valeur: number }) => Promise<string | null>;
+  deleteAllHistoriques: (path: HistoriquePath) => Promise<{ deleted: number; error: string | null }>;
+  importValeursLiquidatives: (file: File) => Promise<{ report: { upserted: number; skipped: number } | null; error: string | null }>;
+  createValeurLiquidative: (input: { date: string; actifNet?: number | null; nombreParts?: number | null; valeur: number }) => Promise<string | null>;
+  deleteAllValeursLiquidatives: () => Promise<{ deleted: number; error: string | null }>;
   screenLabel: (key: ScreenKey) => string;
   progressionVersSuivant: (m: Member) => { current: number; target: number; pct: number; label: string };
 }
+
+const FALLBACK_ROLE: Role = {
+  id: "admin",
+  label: "Administrateur",
+  description: "",
+  tone: "danger",
+  screens: ALL_SCREENS.map((s) => s.key),
+  locked: true,
+};
 
 const MembershipContext = createContext<MembershipContextValue | null>(null);
 
@@ -68,10 +117,44 @@ function initials(nom: string) {
   return nom.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("") || "XX";
 }
 
-function nextId(prefix: string, items: { id: string }[]) {
-  const nums = items.map((i) => parseInt(i.id.replace(/\D/g, ""), 10)).filter((n) => !Number.isNaN(n));
-  const max = nums.length ? Math.max(...nums) : 0;
-  return `${prefix}-${String(max + 1).padStart(4, "0")}`;
+function normalizeParams(params: ProgressionParams): ProgressionParams {
+  const raw = (params.participationsParNiveau ?? {}) as Record<string | number, number>;
+  return {
+    ...params,
+    participationsParNiveau: {
+      1: Number(raw[1] ?? raw["1"] ?? 2),
+      2: Number(raw[2] ?? raw["2"] ?? 4),
+      3: Number(raw[3] ?? raw["3"] ?? 6),
+      4: Number(raw[4] ?? raw["4"] ?? 8),
+      5: Number(raw[5] ?? raw["5"] ?? 10),
+    },
+    membreVoitToutesValeursLiquidatives: params.membreVoitToutesValeursLiquidatives !== false,
+  };
+}
+
+function virtualMember(user: AuthUser | null): Member {
+  return {
+    id: "",
+    matricule: "",
+    nom: user?.nom ?? "Utilisateur",
+    email: user?.email ?? "",
+    avatar: initials(user?.nom ?? "U"),
+    statut: "confirme",
+    niveau: 0,
+    badgeInvestisseur: false,
+    roleId: "admin",
+    fonctions: [],
+    cotisation: "—",
+    capitalInvesti: 0,
+    adhesion: "",
+    groupes: [],
+    nbPresences: 0,
+    nbAbsences: 0,
+    consecutives: 0,
+    enRecuperation: false,
+    grantScreens: [],
+    denyScreens: [],
+  };
 }
 
 export function computeEffectiveScreens(member: Member, roles: Role[]): ScreenKey[] {
@@ -85,294 +168,538 @@ export function computeEffectiveScreens(member: Member, roles: Role[]): ScreenKe
   return ALL_SCREENS.map((s) => s.key).filter((k) => base.has(k));
 }
 
-function niveauFromPresences(presences: number, params: ProgressionParams): number {
-  let niveau = 0;
-  for (let n = 1; n <= 5; n++) {
-    if (presences >= params.participationsParNiveau[n as 1 | 2 | 3 | 4 | 5]) niveau = n;
-  }
-  return niveau;
-}
-
 export function MembershipProvider({ children }: { children: ReactNode }) {
-  const [members, setMembers] = useState<Member[]>(INITIAL_MEMBERS);
-  const [roles, setRoles] = useState<Role[]>(INITIAL_ROLES);
-  const [params, setParams] = useState<ProgressionParams>(INITIAL_PARAMS);
-  const [participations, setParticipations] = useState<Participation[]>(INITIAL_PARTICIPATIONS);
-  const [history, setHistory] = useState<HistoriqueStatut[]>(INITIAL_HISTORY);
-  const [sessions, setSessions] = useState<SessionReservee[]>(INITIAL_SESSIONS);
-  const [currentUserId, setCurrentUserId] = useState("M-0001");
+  const { isAuthenticated, user, patchUser } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [params, setParams] = useState<ProgressionParams>(DEFAULT_PARAMS);
+  const [participations, setParticipations] = useState<Participation[]>([]);
+  const [history, setHistory] = useState<HistoriqueStatut[]>([]);
+  const [sessions, setSessions] = useState<SessionReservee[]>([]);
 
-  const currentUser = useMemo(
-    () => members.find((m) => m.id === currentUserId) ?? members[0],
-    [members, currentUserId],
-  );
+  const applySnapshot = useCallback((data: ClubSnapshot) => {
+    setMembers(data.members ?? []);
+    setRoles(data.roles ?? []);
+    setParams(normalizeParams(data.params ?? DEFAULT_PARAMS));
+    setParticipations(data.participations ?? []);
+    setHistory(data.history ?? []);
+    setSessions(data.sessions ?? []);
+  }, []);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Impossible de charger les données du club.");
+    } finally {
+      setLoading(false);
+    }
+  }, [applySnapshot]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+    void reload();
+  }, [isAuthenticated, reload]);
+
+  const mutate = useCallback(async (fn: () => Promise<ClubSnapshot>) => {
+    setSaving(true);
+    setError(null);
+    try {
+      applySnapshot(await fn());
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'opération a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const currentUser = useMemo(() => {
+    const match = members.find((m) => (m.email ?? "").toLowerCase() === (user?.email ?? "").toLowerCase() && m.email);
+    return match ?? virtualMember(user);
+  }, [members, user]);
+
   const currentRole = useMemo(
-    () => roles.find((r) => r.id === currentUser.roleId) ?? roles[0],
+    () => roles.find((r) => r.id === currentUser.roleId) ?? roles.find((r) => r.id === "admin") ?? FALLBACK_ROLE,
     [roles, currentUser.roleId],
   );
-  const effectiveScreens = useMemo(
-    () => computeEffectiveScreens(currentUser, roles),
-    [currentUser, roles],
-  );
+
+  const effectiveScreens = useMemo(() => {
+    if (user?.role === "SUPER_ADMIN") return ALL_SCREENS.map((s) => s.key);
+    if (!currentUser.id) return ["accueil", "mon-espace"] as ScreenKey[];
+    return computeEffectiveScreens(currentUser, roles);
+  }, [user?.role, currentUser, roles]);
+
   const canAccess = useCallback(
     (screen: ScreenKey) => effectiveScreens.includes(screen),
     [effectiveScreens],
   );
 
-  const pushHistory = useCallback((entry: Omit<HistoriqueStatut, "id">) => {
-    setHistory((prev) => [{ ...entry, id: nextId("H", prev) }, ...prev]);
-  }, []);
-
   const addMember: MembershipContextValue["addMember"] = useCallback((data) => {
-    setMembers((prev) => {
-      const id = data.id || nextId("M", prev);
-      const member: Member = {
-        id,
+    return mutate(() => api("/api/members", {
+      method: "POST",
+      body: JSON.stringify({
         nom: data.nom,
         email: data.email,
-        avatar: initials(data.nom),
+        matricule: data.matricule,
+        username: data.username,
+        password: data.password,
         statut: data.statut,
         niveau: data.niveau ?? 0,
-        badgeInvestisseur: data.badgeInvestisseur ?? data.capitalInvesti >= params.seuilInvestisseurFcfa,
         roleId: data.roleId,
-        fonctions: data.fonctions ?? [],
         cotisation: data.cotisation,
         capitalInvesti: data.capitalInvesti,
         adhesion: data.adhesion,
-        groupes: data.groupes ?? [],
-        nbPresences: data.nbPresences ?? 0,
-        nbAbsences: data.nbAbsences ?? 0,
-        consecutives: data.consecutives ?? 0,
-        enRecuperation: data.enRecuperation ?? false,
         grantScreens: data.grantScreens ?? [],
         denyScreens: data.denyScreens ?? [],
-      };
-      return [...prev, member];
-    });
-  }, [params.seuilInvestisseurFcfa]);
+      }),
+    }));
+  }, [mutate]);
 
   const updateMember = useCallback((id: string, patch: Partial<Member>) => {
-    setMembers((prev) =>
-      prev.map((m) => {
-        if (m.id !== id) return m;
-        const next = { ...m, ...patch };
-        if (patch.nom) next.avatar = initials(patch.nom);
-        if (patch.capitalInvesti !== undefined) {
-          next.badgeInvestisseur = patch.capitalInvesti >= params.seuilInvestisseurFcfa;
-        }
-        return next;
-      }),
-    );
-  }, [params.seuilInvestisseurFcfa]);
+    return mutate(() => api(`/api/members/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(patch),
+    }));
+  }, [mutate]);
+
+  const updateMyProfile = useCallback(async (input: { nom: string; email: string; username: string; password?: string }) => {
+    const payload: { nom: string; email: string; username: string; password?: string } = {
+      nom: input.nom,
+      email: input.email,
+      username: input.username,
+    };
+    if (input.password) payload.password = input.password;
+    const err = await mutate(() => api("/api/members/me", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }));
+    if (!err) {
+      patchUser({ nom: input.nom.trim(), email: input.email.trim() });
+    }
+    return err;
+  }, [mutate, patchUser]);
 
   const removeMember = useCallback((id: string) => {
-    setMembers((prev) => (prev.length <= 1 ? prev : prev.filter((m) => m.id !== id)));
-    setCurrentUserId((cur) => (cur === id ? "M-0001" : cur));
-  }, []);
+    return mutate(() => api(`/api/members/${encodeURIComponent(id)}`, { method: "DELETE" }));
+  }, [mutate]);
+
+  const removeMembers = useCallback((ids: string[]) => {
+    return mutate(() => api("/api/members/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ ids }),
+    }));
+  }, [mutate]);
 
   const updateRoleScreens = useCallback((roleId: string, screens: ScreenKey[]) => {
-    setRoles((prev) => prev.map((r) => (r.id === roleId ? { ...r, screens } : r)));
-  }, []);
+    return mutate(() => api(`/api/roles/${encodeURIComponent(roleId)}/screens`, {
+      method: "PUT",
+      body: JSON.stringify({ screens }),
+    }));
+  }, [mutate]);
 
   const addRole = useCallback((role: Omit<Role, "id"> & { id?: string }) => {
-    const id = role.id || `role-${Date.now()}`;
-    setRoles((prev) => [...prev, { ...role, id, screens: role.screens ?? ["accueil", "mon-espace"] }]);
-  }, []);
+    return mutate(() => api("/api/roles", {
+      method: "POST",
+      body: JSON.stringify(role),
+    }));
+  }, [mutate]);
 
   const updateParams = useCallback((patch: Partial<ProgressionParams>) => {
-    setParams((p) => ({ ...p, ...patch, participationsParNiveau: { ...p.participationsParNiveau, ...(patch.participationsParNiveau ?? {}) } }));
-  }, []);
+    return mutate(() => api("/api/params", {
+      method: "PUT",
+      body: JSON.stringify(patch),
+    }));
+  }, [mutate]);
 
   const recordParticipation: MembershipContextValue["recordParticipation"] = useCallback(
     ({ memberId, type, titre, present, date }) => {
-      const when = date ?? new Date().toISOString().slice(0, 10);
-      setParticipations((prev) => [
-        { id: nextId("P", prev), memberId, date: when, type, titre, present },
-        ...prev,
-      ]);
-
-      setMembers((prev) =>
-        prev.map((m) => {
-          if (m.id !== memberId) return m;
-          if (m.statut === "invite" || m.statut === "suspendu" || m.statut === "confirme") {
-            // Confirmé : on compte mais pas de rétrogradation
-            if (m.statut === "confirme") {
-              return present
-                ? { ...m, nbPresences: m.nbPresences + 1, consecutives: m.consecutives + 1, nbAbsences: m.nbAbsences }
-                : { ...m, nbAbsences: m.nbAbsences + 1, consecutives: 0 };
-            }
-            if (present) {
-              return { ...m, nbPresences: m.nbPresences + 1, consecutives: m.consecutives + 1 };
-            }
-            return { ...m, nbAbsences: m.nbAbsences + 1, consecutives: 0 };
-          }
-
-          let next: Member = { ...m };
-          const oldStatut = m.statut;
-          const oldNiveau = m.niveau;
-
-          if (present) {
-            next.nbPresences += 1;
-            next.consecutives += 1;
-
-            // Récupération Simple → Actif
-            if (next.statut === "simple" && next.enRecuperation && next.consecutives >= params.presencesPourRecuperation) {
-              next.statut = "actif";
-              next.niveau = Math.max(1, niveauFromPresences(next.nbPresences, params));
-              next.enRecuperation = false;
-              pushHistory({
-                memberId,
-                date: when,
-                ancienStatut: oldStatut,
-                nouveauStatut: next.statut,
-                ancienNiveau: oldNiveau,
-                nouveauNiveau: next.niveau,
-                motif: `${params.presencesPourRecuperation} présences consécutives — récupération Actif`,
-                type: "recuperation",
-              });
-            } else if (next.statut === "simple" && next.nbPresences >= params.participationsParNiveau[1]) {
-              next.statut = "actif";
-              next.niveau = niveauFromPresences(next.nbPresences, params);
-              pushHistory({
-                memberId,
-                date: when,
-                ancienStatut: oldStatut,
-                nouveauStatut: "actif",
-                ancienNiveau: oldNiveau,
-                nouveauNiveau: next.niveau,
-                motif: "Participations éligibles — passage Membre Actif",
-                type: "montee_niveau",
-              });
-            } else if (next.statut === "actif") {
-              const newNiveau = niveauFromPresences(next.nbPresences, params);
-              if (newNiveau > next.niveau) {
-                pushHistory({
-                  memberId,
-                  date: when,
-                  ancienStatut: "actif",
-                  nouveauStatut: "actif",
-                  ancienNiveau: next.niveau,
-                  nouveauNiveau: newNiveau,
-                  motif: `Seuil N${newNiveau} atteint (${params.participationsParNiveau[newNiveau as 1|2|3|4|5]} participations)`,
-                  type: "montee_niveau",
-                });
-                next.niveau = newNiveau;
-              }
-              if (next.nbPresences >= params.participationsPourConfirme) {
-                pushHistory({
-                  memberId,
-                  date: when,
-                  ancienStatut: "actif",
-                  nouveauStatut: "confirme",
-                  ancienNiveau: next.niveau,
-                  nouveauNiveau: next.niveau,
-                  motif: `≥ ${params.participationsPourConfirme} participations — Membre Confirmé (permanent)`,
-                  type: "confirmation",
-                });
-                next.statut = "confirme";
-              }
-            }
-          } else {
-            next.nbAbsences += 1;
-            next.consecutives = 0;
-            if (next.statut === "actif" && next.nbAbsences >= params.absencesAvantRetrogradation) {
-              pushHistory({
-                memberId,
-                date: when,
-                ancienStatut: "actif",
-                nouveauStatut: "simple",
-                ancienNiveau: next.niveau,
-                nouveauNiveau: 0,
-                motif: `${params.absencesAvantRetrogradation}e absence — rétrogradation en Membre Simple`,
-                type: "retrogradation",
-              });
-              next.statut = "simple";
-              next.niveau = 0;
-              next.enRecuperation = true;
-              next.nbAbsences = 0;
-            }
-          }
-
-          // Badge investisseur
-          const wasInvest = m.badgeInvestisseur;
-          next.badgeInvestisseur = next.capitalInvesti >= params.seuilInvestisseurFcfa;
-          if (!wasInvest && next.badgeInvestisseur) {
-            pushHistory({
-              memberId,
-              date: when,
-              ancienStatut: next.statut,
-              nouveauStatut: next.statut,
-              ancienNiveau: next.niveau,
-              nouveauNiveau: next.niveau,
-              motif: `Capital ≥ ${params.seuilInvestisseurFcfa.toLocaleString("fr-FR")} FCFA`,
-              type: "badge_investisseur",
-            });
-          }
-
-          return next;
-        }),
-      );
+      return mutate(() => api("/api/participations", {
+        method: "POST",
+        body: JSON.stringify({ memberId, type, titre, present, date }),
+      }));
     },
-    [params, pushHistory],
+    [mutate],
   );
 
   const nominateFonction: MembershipContextValue["nominateFonction"] = useCallback(
     (memberId, data) => {
-      const m = members.find((x) => x.id === memberId);
-      if (!m) return "Membre introuvable";
-      if (m.statut !== "actif" && m.statut !== "confirme") return "Statut insuffisant (Actif ou Confirmé requis)";
-      if (m.niveau < params.niveauMinGouvernance && m.statut !== "confirme") {
-        return `Niveau minimum N${params.niveauMinGouvernance} requis`;
-      }
-      if (data.type === "president_pole") {
-        // maquette : on accepte, message informatif seulement
-      }
-      const fonction: FonctionGouvernance = {
-        id: `fg-${Date.now()}`,
-        ...data,
-        active: true,
-      };
-      setMembers((prev) =>
-        prev.map((mem) => (mem.id === memberId ? { ...mem, fonctions: [...mem.fonctions, fonction] } : mem)),
-      );
-      return null;
+      return mutate(() => api(`/api/members/${encodeURIComponent(memberId)}/fonctions`, {
+        method: "POST",
+        body: JSON.stringify(data),
+      }));
     },
-    [members, params.niveauMinGouvernance],
+    [mutate],
   );
 
   const endFonction = useCallback((memberId: string, fonctionId: string) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id === memberId
-          ? { ...m, fonctions: m.fonctions.map((f) => (f.id === fonctionId ? { ...f, active: false } : f)) }
-          : m,
-      ),
-    );
+    return mutate(() => api(
+      `/api/members/${encodeURIComponent(memberId)}/fonctions/${encodeURIComponent(fonctionId)}/end`,
+      { method: "POST" },
+    ));
+  }, [mutate]);
+
+  const toggleSessionInscription = useCallback((sessionId: string, memberId: string) => {
+    if (!memberId) return Promise.resolve("Aucune fiche membre associée à ce compte.");
+    return mutate(() => api(`/api/sessions/${encodeURIComponent(sessionId)}/toggle`, {
+      method: "POST",
+      body: JSON.stringify({ memberId }),
+    }));
+  }, [mutate]);
+
+  const importDepots = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<ImportReport>("/api/admin/depots/import", { method: "POST", body: form });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const createDepot = useCallback(async (input: { memberId: string; date: string; montant: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/depots", { method: "POST", body: JSON.stringify(input) });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement du dépôt a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const deleteAllDepots = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/depots", { method: "DELETE" });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const importRetraits = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<ImportReport>("/api/admin/retraits/import", { method: "POST", body: form });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const createRetrait = useCallback(async (input: { memberId: string; date: string; montant: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/retraits", { method: "POST", body: JSON.stringify(input) });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement du retrait a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const deleteAllRetraits = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/retraits", { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
   }, []);
 
-  const toggleSessionInscription: MembershipContextValue["toggleSessionInscription"] = useCallback(
-    (sessionId, memberId) => {
-      const m = members.find((x) => x.id === memberId);
-      if (!m?.badgeInvestisseur) return "Session réservée aux Membres Investisseurs (≥ 500 000 FCFA)";
-      setSessions((prev) =>
-        prev.map((s) => {
-          if (s.id !== sessionId) return s;
-          const has = s.inscrits.includes(memberId);
-          if (!has && s.inscrits.length >= s.places) return s;
-          return {
-            ...s,
-            inscrits: has ? s.inscrits.filter((id) => id !== memberId) : [...s.inscrits, memberId],
-          };
-        }),
-      );
+  const importSoldesParts = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<ImportReport>("/api/admin/soldes-parts/import", { method: "POST", body: form });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const createSoldePart = useCallback(async (input: { memberId: string; date: string; nombreParts: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/soldes-parts", { method: "POST", body: JSON.stringify(input) });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
       return null;
-    },
-    [members],
-  );
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement du solde a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const deleteAllSoldesParts = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/soldes-parts", { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const importEtatsParts = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<ImportReport>("/api/admin/etats-parts/import", { method: "POST", body: form });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const createEtatPart = useCallback(async (input: { memberId: string; date: string; nombreParts: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/etats-parts", { method: "POST", body: JSON.stringify(input) });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement de l'état des parts a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const deleteAllEtatsParts = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/etats-parts", { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const importPortefeuille = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<{ upserted: number; skipped: number }>("/api/admin/portefeuille/import", { method: "POST", body: form });
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const createPortefeuilleLigne = useCallback(async (input: { symbole: string; titre: string; secteur?: string }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/portefeuille", { method: "POST", body: JSON.stringify(input) });
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement de la ligne a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const deleteAllPortefeuille = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/portefeuille", { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const importHistorique = useCallback(async (path: HistoriquePath, file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<ImportReport>(`/api/admin/${path}/import`, { method: "POST", body: form });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const createHistorique = useCallback(async (path: HistoriquePath, input: { memberId: string; date: string; valeur: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api(`/api/admin/${path}`, { method: "POST", body: JSON.stringify(input) });
+      applySnapshot(await api<ClubSnapshot>("/api/club"));
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, [applySnapshot]);
+
+  const deleteAllHistoriques = useCallback(async (path: HistoriquePath) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>(`/api/admin/${path}`, { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const importValeursLiquidatives = useCallback(async (file: File) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const report = await api<{ upserted: number; skipped: number }>("/api/admin/valeurs-liquidatives/import", { method: "POST", body: form });
+      return { report, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'import a échoué.";
+      setError(message);
+      return { report: null, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const createValeurLiquidative = useCallback(async (input: { date: string; actifNet?: number | null; nombreParts?: number | null; valeur: number }) => {
+    setSaving(true);
+    setError(null);
+    try {
+      await api("/api/admin/valeurs-liquidatives", { method: "POST", body: JSON.stringify(input) });
+      return null;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "L'enregistrement a échoué.";
+      setError(message);
+      return message;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
+
+  const deleteAllValeursLiquidatives = useCallback(async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await api<{ deleted: number }>("/api/admin/valeurs-liquidatives", { method: "DELETE" });
+      return { deleted: result.deleted, error: null };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "La suppression a échoué.";
+      setError(message);
+      return { deleted: 0, error: message };
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
   const progressionVersSuivant = useCallback(
     (m: Member) => {
-      if (m.statut === "confirme") return { current: m.nbPresences, target: m.nbPresences, pct: 100, label: "Statut permanent" };
+      if (m.statut === "confirme") return { current: m.nbPresences, target: m.nbPresences || 1, pct: 100, label: "Statut permanent" };
       if (m.statut === "invite") return { current: 0, target: 1, pct: 0, label: "Demande d'adhésion / 1ère activité" };
       if (m.statut === "simple" && m.enRecuperation) {
         return {
@@ -411,19 +738,32 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
-      members, roles, params, participations, history, sessions,
-      currentUserId, currentUser, currentRole, effectiveScreens, canAccess,
-      setCurrentUserId, addMember, updateMember, removeMember,
+      loading, saving, error, members, roles, params, participations, history, sessions,
+      currentUserId: currentUser.id, currentUser, currentRole, effectiveScreens, canAccess,
+      reload, addMember, updateMember, updateMyProfile, removeMember, removeMembers,
       updateRoleScreens, addRole, updateParams, recordParticipation,
-      nominateFonction, endFonction, toggleSessionInscription,
+      nominateFonction, endFonction, toggleSessionInscription, importDepots, createDepot, deleteAllDepots,
+      importRetraits, createRetrait, deleteAllRetraits,
+      importSoldesParts, createSoldePart, deleteAllSoldesParts,
+      importEtatsParts, createEtatPart, deleteAllEtatsParts,
+      importPortefeuille, createPortefeuilleLigne, deleteAllPortefeuille,
+      importHistorique, createHistorique, deleteAllHistoriques,
+      importValeursLiquidatives, createValeurLiquidative, deleteAllValeursLiquidatives,
       screenLabel, progressionVersSuivant,
     }),
     [
-      members, roles, params, participations, history, sessions,
-      currentUserId, currentUser, currentRole, effectiveScreens, canAccess,
-      addMember, updateMember, removeMember, updateRoleScreens, addRole,
+      loading, saving, error, members, roles, params, participations, history, sessions,
+      currentUser, currentRole, effectiveScreens, canAccess, reload,
+      addMember, updateMember, updateMyProfile, removeMember, removeMembers, updateRoleScreens, addRole,
       updateParams, recordParticipation, nominateFonction, endFonction,
-      toggleSessionInscription, screenLabel, progressionVersSuivant,
+      toggleSessionInscription, importDepots, createDepot, deleteAllDepots,
+      importRetraits, createRetrait, deleteAllRetraits,
+      importSoldesParts, createSoldePart, deleteAllSoldesParts,
+      importEtatsParts, createEtatPart, deleteAllEtatsParts,
+      importPortefeuille, createPortefeuilleLigne, deleteAllPortefeuille,
+      importHistorique, createHistorique, deleteAllHistoriques,
+      importValeursLiquidatives, createValeurLiquidative, deleteAllValeursLiquidatives,
+      screenLabel, progressionVersSuivant,
     ],
   );
 
@@ -435,5 +775,3 @@ export function useMembership() {
   if (!ctx) throw new Error("useMembership must be used within MembershipProvider");
   return ctx;
 }
-
-export type { FonctionType };

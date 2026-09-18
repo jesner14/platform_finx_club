@@ -16,65 +16,16 @@
 }
 
 /* ═══════════════════════════════════
-   V1 — sombre navy + cyan (actuel)
+   V1 — bleu / blanc / or (ex-V2)
    ═══════════════════════════════════ */
 :root,
 html[data-theme="v1"] {
-  --background: #070F33;
-  --foreground: #F4F7FB;
-  --card: #0B1B59;
-  --card-foreground: #F4F7FB;
-  --popover: #0B1B59;
-  --popover-foreground: #F4F7FB;
-  --primary: #01AAE4;
-  --primary-foreground: #FFFFFF;
-  --secondary: #13266B;
-  --secondary-foreground: #F4F7FB;
-  --muted: #13266B;
-  --muted-foreground: #8FA3C8;
-  --accent: #01AAE4;
-  --accent-foreground: #FFFFFF;
-  --border: rgba(1, 170, 228, 0.22);
-  --input: #13266B;
-  --input-background: #13266B;
-  --switch-background: #1C3480;
-  --ring: #01AAE4;
-  --chart-1: #01AAE4;
-  --chart-2: #0B1B59;
-  --chart-3: #F5D251;
-  --chart-4: #4DB8E8;
-  --chart-5: #7A8BA4;
-  --sidebar: #0B1B59;
-  --sidebar-foreground: #F4F7FB;
-  --sidebar-primary: #01AAE4;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #13266B;
-  --sidebar-accent-foreground: #F4F7FB;
-  --sidebar-border: rgba(1, 170, 228, 0.18);
-  --sidebar-ring: #01AAE4;
-  --premium: #F5D251;
-  --premium-foreground: #0B1B59;
-  --hero-from: #0B1B59;
-  --hero-via: #13266B;
-  --hero-to: #070F33;
-  --hero-fg: #F4F7FB;
-  --hero-muted: #8FA3C8;
-  --hero-grid: #01AAE4;
-  --success: #34d399;
-  --surface-tint: rgba(1, 170, 228, 0.08);
-}
-
-/* ═══════════════════════════════════
-   V2 — bleu / blanc / jaune (clair)
-   ═══════════════════════════════════ */
-html[data-theme="v2"] {
   --background: #F4F6FA;
   --foreground: #0B1B59;
   --card: #FFFFFF;
   --card-foreground: #0B1B59;
   --popover: #FFFFFF;
   --popover-foreground: #0B1B59;
-  /* Primary = navy lisible sur blanc ; jaune réservé au premium / sidebar */
   --primary: #0B1B59;
   --primary-foreground: #FFFFFF;
   --secondary: #E8EDF6;
@@ -111,14 +62,464 @@ html[data-theme="v2"] {
   --hero-grid: #0B1B59;
   --success: #059669;
   --surface-tint: rgba(11, 27, 89, 0.06);
+  --radius: 0.375rem;
 }
 
-/* Badges premium V2 : fond or léger + texte navy (pas de jaune flou) */
+html[data-theme="v1"] tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+html[data-theme="v1"] tbody tr:nth-child(even) {
+  background-color: #e8edf6 !important;
+}
+html[data-theme="v1"] tbody tr:hover {
+  background-color: #dce4f0 !important;
+}
+
+/* ═══════════════════════════════════
+   V2 — même charte, chrome « maison »
+   sidebar claire, CTA or, hero navy, cartes flottantes
+   ═══════════════════════════════════ */
+html[data-theme="v2"] {
+  --font-size: 16.5px;
+  --background: #EBEFF7;
+  --foreground: #0B1B59;
+  --card: #FFFFFF;
+  --card-foreground: #0B1B59;
+  --popover: #FFFFFF;
+  --popover-foreground: #0B1B59;
+  --primary: #F5D251;
+  --primary-foreground: #0B1B59;
+  --secondary: #E8EDF6;
+  --secondary-foreground: #0B1B59;
+  --muted: #E8EDF6;
+  --muted-foreground: #5A6B8C;
+  --accent: #01AAE4;
+  --accent-foreground: #FFFFFF;
+  --border: rgba(11, 27, 89, 0.08);
+  --input: #FFFFFF;
+  --input-background: #FFFFFF;
+  --switch-background: #C5CDD9;
+  --ring: #F5D251;
+  --chart-1: #0B1B59;
+  --chart-2: #F5D251;
+  --chart-3: #01AAE4;
+  --chart-4: #3D4F8C;
+  --chart-5: #C5CDD9;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #0B1B59;
+  --sidebar-primary: #0B1B59;
+  --sidebar-primary-foreground: #0B1B59;
+  --sidebar-accent: rgba(245, 210, 81, 0.28);
+  --sidebar-accent-foreground: #0B1B59;
+  --sidebar-border: rgba(11, 27, 89, 0.08);
+  --sidebar-ring: #F5D251;
+  --premium: #F5D251;
+  --premium-foreground: #0B1B59;
+  --hero-from: #0B1B59;
+  --hero-via: #13266B;
+  --hero-to: #070F33;
+  --hero-fg: #FFFFFF;
+  --hero-muted: #8FA3C8;
+  --hero-grid: #F5D251;
+  --success: #059669;
+  --surface-tint: rgba(11, 27, 89, 0.05);
+  --radius: 0.9rem;
+}
+
+/* Badges premium : fond or léger + texte navy */
+html[data-theme="v1"] .badge-premium,
+html[data-theme="v1"] .role-tone-premium,
 html[data-theme="v2"] .badge-premium,
 html[data-theme="v2"] .role-tone-premium {
   background-color: rgb(245 210 81 / 0.28) !important;
   color: #0B1B59 !important;
   border-color: rgb(11 27 89 / 0.2) !important;
+}
+
+/* V2 : l'or reste sur les boutons (fond), le texte passe en navy pour le contraste */
+html[data-theme="v2"] .text-primary,
+html[data-theme="v2"] [class*="text-primary\/"],
+html[data-theme="v2"] .hover\:text-primary:hover {
+  color: #0B1B59 !important;
+}
+html[data-theme="v2"] .finx-card {
+  border-radius: 1.05rem;
+  border-color: transparent;
+  box-shadow: 0 12px 36px rgba(11, 27, 89, 0.07);
+  background-image: linear-gradient(#F5D251, #F5D251);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: top left;
+}
+
+html[data-theme="v2"] .finx-hero {
+  border: none;
+  border-radius: 1.35rem;
+  box-shadow: 0 22px 50px rgba(11, 27, 89, 0.22);
+}
+
+html[data-theme="v2"] .finx-hero::after {
+  content: "";
+  position: absolute;
+  right: -48px;
+  bottom: -56px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 210, 81, 0.28);
+  pointer-events: none;
+}
+
+html[data-theme="v2"] .finx-sidebar {
+  box-shadow: 8px 0 32px rgba(11, 27, 89, 0.06);
+}
+
+html[data-theme="v2"] .finx-sidebar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #F5D251;
+}
+
+html[data-theme="v2"] .finx-topbar {
+  background: rgba(255, 255, 255, 0.86);
+  border-bottom-color: transparent;
+  box-shadow: 0 8px 24px rgba(11, 27, 89, 0.05);
+}
+
+html[data-theme="v2"] .finx-nav-active {
+  border-right-width: 0 !important;
+  border-left: 3px solid #F5D251;
+  border-radius: 0 0.65rem 0.65rem 0;
+}
+
+html[data-theme="v2"] .text-\[9px\] {
+  font-size: 11px;
+}
+html[data-theme="v2"] .text-\[10px\] {
+  font-size: 12.5px;
+}
+html[data-theme="v2"] .text-\[11px\] {
+  font-size: 13.5px;
+}
+html[data-theme="v2"] .text-\[13px\] {
+  font-size: 14.5px;
+}
+html[data-theme="v2"] .text-xs {
+  font-size: 13.5px;
+}
+html[data-theme="v2"] .text-sm {
+  font-size: 15px;
+}
+
+html[data-theme="v2"] tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+html[data-theme="v2"] tbody tr:nth-child(even) {
+  background-color: #e8edf6 !important;
+}
+html[data-theme="v2"] tbody tr:hover {
+  background-color: #dce4f0 !important;
+}
+
+/* ═══════════════════════════════════
+   V3 — glassmorphism blanc
+   ═══════════════════════════════════ */
+html[data-theme="v3"] {
+  --font-size: 16px;
+  --background: #f3f6fb;
+  --foreground: #0B1B59;
+  --card: rgba(255, 255, 255, 0.62);
+  --card-foreground: #0B1B59;
+  --popover: rgba(255, 255, 255, 0.82);
+  --popover-foreground: #0B1B59;
+  --primary: #FFFFFF;
+  --primary-foreground: #0B1B59;
+  --secondary: rgba(255, 255, 255, 0.55);
+  --secondary-foreground: #0B1B59;
+  --muted: rgba(255, 255, 255, 0.4);
+  --muted-foreground: #5A6B8C;
+  --accent: #01AAE4;
+  --accent-foreground: #FFFFFF;
+  --border: rgba(255, 255, 255, 0.7);
+  --input: rgba(255, 255, 255, 0.7);
+  --input-background: rgba(255, 255, 255, 0.7);
+  --switch-background: #C5CDD9;
+  --ring: rgba(11, 27, 89, 0.22);
+  --chart-1: #0B1B59;
+  --chart-2: #01AAE4;
+  --chart-3: #F5D251;
+  --chart-4: #3D4F8C;
+  --chart-5: #C5CDD9;
+  --sidebar: transparent;
+  --sidebar-foreground: #0B1B59;
+  --sidebar-primary: #0B1B59;
+  --sidebar-primary-foreground: #0B1B59;
+  --sidebar-accent: rgba(255, 255, 255, 0.72);
+  --sidebar-accent-foreground: #0B1B59;
+  --sidebar-border: rgba(255, 255, 255, 0.55);
+  --sidebar-ring: rgba(11, 27, 89, 0.2);
+  --premium: #F5D251;
+  --premium-foreground: #0B1B59;
+  --hero-from: transparent;
+  --hero-via: transparent;
+  --hero-to: transparent;
+  --hero-fg: #0B1B59;
+  --hero-muted: #5A6B8C;
+  --hero-grid: #0B1B59;
+  --success: #059669;
+  --surface-tint: rgba(255, 255, 255, 0.4);
+  --radius: 1.15rem;
+}
+
+html[data-theme="v3"] body {
+  background-color: #eef3fa;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 6% -10%, rgba(255, 255, 255, 0.95), transparent 55%),
+    radial-gradient(ellipse 55% 45% at 100% 0%, rgba(1, 170, 228, 0.16), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 90% 100%, rgba(245, 210, 81, 0.14), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 8% 90%, rgba(11, 27, 89, 0.06), transparent 50%),
+    linear-gradient(165deg, #f7f9fd 0%, #e8eef8 48%, #f4f7fb 100%);
+  background-attachment: fixed;
+}
+
+html[data-theme="v3"] .finx-app {
+  background: transparent;
+}
+
+html[data-theme="v3"] .badge-premium,
+html[data-theme="v3"] .role-tone-premium {
+  background-color: rgb(255 255 255 / 0.7) !important;
+  color: #0B1B59 !important;
+  border-color: rgb(11 27 89 / 0.14) !important;
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="v3"] .text-primary,
+html[data-theme="v3"] [class*="text-primary\/"],
+html[data-theme="v3"] .hover\:text-primary:hover {
+  color: #0B1B59 !important;
+}
+
+html[data-theme="v3"] .bg-primary,
+html[data-theme="v3"] .hover\:bg-primary:hover {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #0B1B59 !important;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 10px 28px rgba(11, 27, 89, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+html[data-theme="v3"] .finx-hero .bg-primary {
+  background: #0B1B59 !important;
+  border: none;
+  box-shadow: none;
+}
+
+html[data-theme="v3"] .finx-card {
+  background: rgba(255, 255, 255, 0.58) !important;
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 1.15rem;
+  box-shadow:
+    0 12px 40px rgba(11, 27, 89, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+html[data-theme="v3"] .finx-hero {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(26px) saturate(170%);
+  -webkit-backdrop-filter: blur(26px) saturate(170%);
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  border-radius: 1.4rem;
+  box-shadow:
+    0 18px 50px rgba(11, 27, 89, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+html[data-theme="v3"] .finx-hero::after {
+  content: "";
+  position: absolute;
+  right: -40px;
+  top: -60px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9), transparent 68%);
+  pointer-events: none;
+}
+
+html[data-theme="v3"] .finx-sidebar {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border-right: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 12px 0 40px rgba(11, 27, 89, 0.06);
+}
+
+html[data-theme="v3"] .finx-sidebar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ffffff, rgba(11, 27, 89, 0.15));
+}
+
+html[data-theme="v3"] .finx-topbar {
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px rgba(11, 27, 89, 0.05);
+}
+
+html[data-theme="v3"] .finx-nav-active {
+  border-right-width: 0 !important;
+  border-left: 3px solid #ffffff;
+  border-radius: 0 0.75rem 0.75rem 0;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #0B1B59 !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+html[data-theme="v3"] .finx-select,
+html[data-theme="v3"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+html[data-theme="v3"] select,
+html[data-theme="v3"] textarea {
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #0B1B59 !important;
+  border-color: rgba(255, 255, 255, 0.95);
+}
+
+html[data-theme="v3"] .finx-select option,
+html[data-theme="v3"] select option {
+  color: #0B1B59 !important;
+  background-color: #ffffff !important;
+}
+
+html[data-theme="v3"] .text-emerald-400,
+html[data-theme="v3"] .text-emerald-700 {
+  color: #059669;
+}
+html[data-theme="v3"] .text-red-400,
+html[data-theme="v3"] .text-red-600,
+html[data-theme="v3"] .text-red-700 {
+  color: #dc2626;
+}
+
+html[data-theme="v3"] .text-\[9px\] {
+  font-size: 11px;
+}
+html[data-theme="v3"] .text-\[10px\] {
+  font-size: 12.5px;
+}
+html[data-theme="v3"] .text-\[11px\] {
+  font-size: 13.5px;
+}
+html[data-theme="v3"] .text-\[13px\] {
+  font-size: 14.5px;
+}
+html[data-theme="v3"] .text-xs {
+  font-size: 13.5px;
+}
+html[data-theme="v3"] .text-sm {
+  font-size: 15px;
+}
+
+html[data-theme="v3"] .finx-card:has(table) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+html[data-theme="v3"] .finx-card:has(table) .border.rounded-lg,
+html[data-theme="v3"] .finx-card:has(table) .overflow-hidden {
+  background: transparent;
+  border-color: transparent !important;
+  overflow: visible;
+}
+
+html[data-theme="v3"] table {
+  border-collapse: separate !important;
+  border-spacing: 0 0.7rem;
+  width: 100%;
+}
+
+html[data-theme="v3"] thead {
+  background: transparent !important;
+}
+
+html[data-theme="v3"] thead tr,
+html[data-theme="v3"] thead th {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="v3"] thead th {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+html[data-theme="v3"] tbody tr {
+  background: transparent !important;
+  filter: drop-shadow(0 8px 18px rgba(11, 27, 89, 0.07));
+}
+
+html[data-theme="v3"] tbody tr:hover {
+  background: transparent !important;
+}
+
+html[data-theme="v3"] tbody td {
+  background: rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border: none !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.95) !important;
+  padding-top: 0.95rem;
+  padding-bottom: 0.95rem;
+}
+
+html[data-theme="v3"] tbody td:first-child {
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+  border-left: 1px solid rgba(255, 255, 255, 0.95) !important;
+}
+
+html[data-theme="v3"] tbody td:last-child {
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
+  border-right: 1px solid rgba(255, 255, 255, 0.95) !important;
+}
+
+html[data-theme="v3"] tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.96) !important;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-theme="v3"] .finx-card,
+  html[data-theme="v3"] .finx-hero,
+  html[data-theme="v3"] .finx-sidebar,
+  html[data-theme="v3"] .finx-topbar {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  html[data-theme="v3"] .finx-card,
+  html[data-theme="v3"] .finx-hero,
+  html[data-theme="v3"] .finx-sidebar,
+  html[data-theme="v3"] .finx-topbar {
+    background: rgba(255, 255, 255, 0.96) !important;
+  }
 }
 
 @theme inline {
@@ -224,18 +625,18 @@ html[data-theme="v2"] .role-tone-premium {
   }
 }
 
-/* Ajustements V2 : badges succès plus lisibles sur fond clair */
-html[data-theme="v2"] .text-emerald-400 {
+/* Badges succès lisibles sur fond clair (V1 et V2) */
+.text-emerald-400 {
   color: #059669;
 }
-html[data-theme="v2"] .text-red-400 {
+.text-red-400 {
   color: #dc2626;
 }
-html[data-theme="v2"] .bg-emerald-500\/10,
-html[data-theme="v2"] .bg-emerald-500\/20 {
+.bg-emerald-500\/10,
+.bg-emerald-500\/20 {
   background-color: rgb(5 150 105 / 0.1);
 }
-html[data-theme="v2"] .border-emerald-500\/20,
-html[data-theme="v2"] .border-emerald-500\/30 {
+.border-emerald-500\/20,
+.border-emerald-500\/30 {
   border-color: rgb(5 150 105 / 0.3);
 }
