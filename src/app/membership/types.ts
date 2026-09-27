@@ -6,6 +6,7 @@ export type ScreenKey =
   | "gouvernance"
   | "participations"
   | "sessions"
+  | "inscription"
   | "mon-espace"
   | "parametres"
   | "depots"
@@ -130,11 +131,14 @@ export interface Member {
   enRecuperation: boolean;
   grantScreens: ScreenKey[];
   denyScreens: ScreenKey[];
+  investorApplicationId?: string | null;
+  pendingInvestorValidation?: boolean;
 }
 
 export const ALL_SCREENS: { key: ScreenKey; label: string; group: string; parent?: ScreenKey }[] = [
   { key: "accueil", label: "Tableau de bord", group: "Principal" },
   { key: "membres", label: "Membres", group: "Gestion" },
+  { key: "inscription", label: "Inscription", group: "Gestion", parent: "membres" },
   { key: "roles", label: "Rôles & privilèges", group: "Gestion", parent: "membres" },
   { key: "gouvernance", label: "Gouvernance", group: "Gestion", parent: "membres" },
   { key: "participations", label: "Participations", group: "Gestion", parent: "membres" },
@@ -154,6 +158,57 @@ export const ALL_SCREENS: { key: ScreenKey; label: string; group: string; parent
 
 export const MEMBER_SUBMENUS = ALL_SCREENS.filter((s) => s.parent === "membres");
 
+export const ADMIN_NAV_GROUPS: {
+  id: string;
+  label: string;
+  icon: ScreenKey;
+  tabs: { key: ScreenKey; label: string }[];
+}[] = [
+  {
+    id: "mouvements",
+    label: "Mouvements",
+    icon: "depots",
+    tabs: [
+      { key: "depots", label: "Dépôts" },
+      { key: "retraits", label: "Retraits" },
+    ],
+  },
+  {
+    id: "parts",
+    label: "Parts",
+    icon: "solde-parts",
+    tabs: [
+      { key: "solde-parts", label: "Solde de parts" },
+      { key: "etat-parts", label: "État des parts" },
+      { key: "valeur-liquidative", label: "Valeur liquidative" },
+    ],
+  },
+  {
+    id: "portefeuille",
+    label: "Portefeuille",
+    icon: "valeur-portefeuille",
+    tabs: [{ key: "valeur-portefeuille", label: "Positions" }],
+  },
+  {
+    id: "historiques",
+    label: "Historiques",
+    icon: "historique-performances",
+    tabs: [
+      { key: "historique-performances", label: "Performances" },
+      { key: "historique-montants-investis", label: "Montants investis" },
+      { key: "historique-capitaux-nets", label: "Capitaux nets" },
+    ],
+  },
+  {
+    id: "parametres",
+    label: "Paramètres",
+    icon: "parametres",
+    tabs: [{ key: "parametres", label: "Progression" }],
+  },
+];
+
+export const ADMIN_SCREEN_KEYS = ADMIN_NAV_GROUPS.flatMap((group) => group.tabs.map((tab) => tab.key));
+
 export const DEFAULT_PARAMS: ProgressionParams = {
   participationsParNiveau: { 1: 2, 2: 4, 3: 6, 4: 8, 5: 10 },
   participationsPourConfirme: 6,
@@ -166,7 +221,7 @@ export const DEFAULT_PARAMS: ProgressionParams = {
 };
 
 export const STATUS_LABELS: Record<MemberStatus, string> = {
-  invite: "Invité / Visiteur",
+  invite: "Candidat investisseur",
   simple: "Membre Simple",
   actif: "Membre Actif",
   confirme: "Membre Confirmé",

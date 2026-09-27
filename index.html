@@ -5,17 +5,20 @@
       
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>FINX CLUB — Membres, statuts & rôles</title>
-      <meta name="description" content="Maquette FINX CLUB : gestion des membres, statuts, niveaux, rôles, gouvernance et espace personnel." />
+      <title>FINX CLUB — Club d'investissement</title>
+      <meta name="description" content="FINX CLUB, société d'investissement et club privé : gouvernance, parts, valeur liquidative et espace membres." />
       <meta name="robots" content="noindex, nofollow" />
       <link rel="icon" type="image/png" href="/symbol-finx.png" />
       <script>
         (function () {
           try {
-            var t = localStorage.getItem('finx-theme-version-r2');
-            document.documentElement.setAttribute('data-theme', t === 'v2' ? 'v2' : 'v1');
+            var mode = localStorage.getItem('finx-color-mode');
+            var next = mode === 'dark' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-mode', next);
+            document.documentElement.classList.toggle('dark', next === 'dark');
+            document.documentElement.style.colorScheme = next;
           } catch (e) {
-            document.documentElement.setAttribute('data-theme', 'v1');
+            document.documentElement.setAttribute('data-mode', 'light');
           }
         })();
       </script>

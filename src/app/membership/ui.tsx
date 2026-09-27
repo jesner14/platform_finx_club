@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { MemberStatus } from "./types";
 import { STATUS_LABELS } from "./types";
 
@@ -42,6 +42,7 @@ export function Badge({
 export function statusVariant(statut: MemberStatus): "success" | "warning" | "danger" | "neutral" | "info" {
   if (statut === "confirme" || statut === "actif") return "success";
   if (statut === "simple") return "info";
+  if (statut === "invite") return "warning";
   if (statut === "suspendu") return "danger";
   return "neutral";
 }
@@ -133,6 +134,7 @@ export function ConfirmDialog({
   message,
   confirmLabel = "Supprimer",
   cancelLabel = "Annuler",
+  danger = true,
   busy,
   error,
   onConfirm,
@@ -143,6 +145,7 @@ export function ConfirmDialog({
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  danger?: boolean;
   busy?: boolean;
   error?: string | null;
   onConfirm: () => void;
@@ -168,7 +171,9 @@ export function ConfirmDialog({
             type="button"
             disabled={busy}
             onClick={onConfirm}
-            className="px-4 py-2 text-xs bg-red-600 text-white rounded font-medium disabled:opacity-60 flex items-center gap-2"
+            className={`px-4 py-2 text-xs rounded font-medium disabled:opacity-60 flex items-center gap-2 ${
+              danger ? "bg-red-600 text-white" : "bg-primary text-primary-foreground"
+            }`}
           >
             {busy && <Spinner className="h-3 w-3 border-white/40 border-t-white" />}
             {confirmLabel}
@@ -176,5 +181,58 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
+  );
+}
+
+export function PillTabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { id: string; label: string }[];
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  if (tabs.length <= 1) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {tabs.map((tab) => {
+        const selected = active === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onChange(tab.id)}
+            className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-colors ${
+              selected
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function WorkTabs({
+  items,
+  initial,
+}: {
+  items: { id: string; label: string; hidden?: boolean; content: ReactNode }[];
+  initial?: string;
+}) {
+  const visible = items.filter((item) => !item.hidden);
+  const [active, setActive] = useState(initial && visible.some((item) => item.id === initial) ? initial : visible[0]?.id);
+  if (!visible.length) return null;
+  return (
+    <Card className="overflow-hidden">
+      <div className="px-5 pt-4 pb-4 border-b border-border">
+        <PillTabs tabs={visible.map(({ id, label }) => ({ id, label }))} active={active ?? visible[0].id} onChange={setActive} />
+      </div>
+      <div className="p-5">{visible.find((item) => item.id === active)?.content}</div>
+    </Card>
   );
 }

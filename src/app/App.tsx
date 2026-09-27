@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, X, Bell, Search, LogOut, Lock } from "lucide-react";
 import { MembershipProvider, useMembership } from "./membership/MembershipContext";
-import { LoginPage } from "./auth/LoginPage";
+import { LoginPage, ForceChangePasswordPage } from "./auth/LoginPage";
+import { PublicSite } from "./public/PublicSite";
+import { RegisterPage } from "./public/RegisterPage";
+import { readPublicPage, type PublicPage } from "./public/publicNav";
 import { AuthProvider, initialsFromName, roleLabel, useAuth } from "./auth/AuthContext";
 import {
   NAV_ICONS,
@@ -23,9 +26,10 @@ import {
   PageHistoriqueCapitauxNets,
   PageValeursLiquidatives,
 } from "./membership/FeaturePages";
-import { ALL_SCREENS, MEMBER_SUBMENUS, type ScreenKey } from "./membership/types";
-import { THEME_VERSIONS, ThemeProvider, useTheme } from "./theme/ThemeContext";
-import { PageLoader, SavingOverlay } from "./membership/ui";
+import { PageInscription } from "./membership/InscriptionPage";
+import { ADMIN_NAV_GROUPS, ADMIN_SCREEN_KEYS, ALL_SCREENS, MEMBER_SUBMENUS, type ScreenKey } from "./membership/types";
+import { ModeToggle, ThemeProvider, useTheme } from "./theme/ThemeContext";
+import { PageLoader, PillTabs, SavingOverlay } from "./membership/ui";
 
 type Section = ScreenKey;
 
@@ -46,10 +50,10 @@ function Sidebar({
 }) {
   const { canAccess } = useMembership();
   const { user, logout } = useAuth();
-  const { isV2, isV3 } = useTheme();
+  const { isDark } = useTheme();
   const groups = ["Principal", "Gestion", "Membre", "Admin"];
   const avatar = initialsFromName(user?.nom ?? "SA");
-  const [membersOpen, setMembersOpen] = useState(true);
+  const [membersOpen, setMembersOpen] = useState(false);
   const memberChildActive = MEMBER_SUBMENUS.some((item) => item.key === active);
 
   useEffect(() => {
@@ -64,7 +68,7 @@ function Sidebar({
         </button>
         {!collapsed && (
           <>
-            <img src={isV2 || isV3 ? "/logo-finx.png" : "/logo-finx-white.png"} alt="FINX CLUB" className="h-8 w-auto object-contain flex-1 min-w-0" />
+            <img src={isDark ? "/logo-finx-white.png" : "/logo-finx.png"} alt="FINX CLUB" className="h-8 w-auto object-contain flex-1 min-w-0" />
             <button onClick={onToggle} className="text-sidebar-foreground/60 hover:text-sidebar-foreground shrink-0" type="button">
               <X size={14} />
             </button>
@@ -74,6 +78,38 @@ function Sidebar({
 
       <nav className="flex-1 overflow-y-auto py-4">
         {groups.map((group) => {
+          if (group === "Admin") {
+            const adminGroups = ADMIN_NAV_GROUPS.filter((item) => item.tabs.some((tab) => canAccess(tab.key)));
+            if (!adminGroups.length) return null;
+            return (
+              <div key={group} className="mb-2">
+                {!collapsed && (
+                  <p className="px-4 mb-1 font-mono text-[9px] tracking-[0.2em] text-sidebar-foreground/40 uppercase">{group}</p>
+                )}
+                {adminGroups.map((item) => {
+                  const accessible = item.tabs.filter((tab) => canAccess(tab.key));
+                  const Icon = NAV_ICONS[item.icon];
+                  const isActive = accessible.some((tab) => tab.key === active);
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => onChange(accessible[0].key)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all ${
+                        isActive
+                          ? "finx-nav-active bg-sidebar-accent text-sidebar-primary border-r-2 border-sidebar-primary font-semibold"
+                          : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                      } ${collapsed ? "justify-center" : ""}`}
+                      title={collapsed ? item.label : undefined}
+                    >
+                      <Icon size={16} className="shrink-0" />
+                      {!collapsed && <span className="font-medium flex-1 text-left">{item.label}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          }
           const items = ALL_SCREENS.filter((i) => i.group === group && !i.parent && canAccess(i.key));
           if (!items.length) return null;
           return (
@@ -105,7 +141,7 @@ function Sidebar({
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all ${
                         isActive
-                          ? `finx-nav-active bg-sidebar-accent text-sidebar-primary border-r-2 border-sidebar-primary ${isV2 || isV3 ? "font-semibold" : ""}`
+                          ? "finx-nav-active bg-sidebar-accent text-sidebar-primary border-r-2 border-sidebar-primary font-semibold"
                           : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                       } ${collapsed ? "justify-center" : ""}`}
                       title={collapsed ? item.label : undefined}
@@ -128,7 +164,7 @@ function Sidebar({
                               onClick={() => onChange(child.key)}
                               className={`w-full flex items-center gap-3 px-4 py-2 text-[13px] transition-all ${
                                 childIsActive
-                                  ? `finx-nav-active bg-sidebar-accent text-sidebar-primary ${isV2 || isV3 ? "font-semibold" : ""}`
+                                  ? "finx-nav-active bg-sidebar-accent text-sidebar-primary font-semibold"
                                   : "text-sidebar-foreground/55 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                               } ${collapsed ? "justify-center" : ""}`}
                               title={collapsed ? child.label : undefined}
@@ -178,24 +214,10 @@ function Sidebar({
 }
 
 function Topbar({ title, collapsed }: { title: string; collapsed: boolean }) {
-  const { theme, setTheme } = useTheme();
   return (
     <header className={`finx-topbar fixed top-0 right-0 h-16 bg-background/90 backdrop-blur border-b border-border flex items-center px-6 gap-4 z-20 transition-all duration-300 ${collapsed ? "left-16" : "left-60"}`}>
       <h1 className="font-display text-lg font-bold text-foreground uppercase tracking-wide flex-1">{title}</h1>
-      <div className="flex items-center gap-0.5 p-0.5 rounded-lg border border-border bg-secondary/60">
-        {THEME_VERSIONS.map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => setTheme(v)}
-            className={`px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider ${
-              theme === v ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
+      <ModeToggle />
       <div className="flex items-center gap-2 bg-secondary/50 border border-border rounded px-3 py-1.5">
         <Search size={13} className="text-muted-foreground" />
         <input placeholder="Rechercher…" className="bg-transparent text-xs focus:outline-none w-36 font-mono" />
@@ -204,6 +226,47 @@ function Topbar({ title, collapsed }: { title: string; collapsed: boolean }) {
         <Bell size={18} />
       </button>
     </header>
+  );
+}
+
+function AdminScreenTabs({
+  active,
+  onChange,
+  canAccess,
+}: {
+  active: Section;
+  onChange: (s: Section) => void;
+  canAccess: (s: Section) => boolean;
+}) {
+  const group = ADMIN_NAV_GROUPS.find((item) => item.tabs.some((tab) => tab.key === active));
+  if (!group) return null;
+  const tabs = group.tabs.filter((tab) => canAccess(tab.key));
+  return (
+    <div className="mb-6">
+      <div className="flex items-end gap-6 overflow-x-auto border-b border-border mb-4">
+        {ADMIN_NAV_GROUPS.filter((item) => item.tabs.some((tab) => canAccess(tab.key))).map((item) => {
+          const selected = item.id === group.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onChange(item.tabs.find((tab) => canAccess(tab.key))!.key)}
+              className={`relative shrink-0 pb-3 text-sm font-medium tracking-wide transition-colors ${
+                selected ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.label}
+              {selected && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" />}
+            </button>
+          );
+        })}
+      </div>
+      <PillTabs
+        tabs={tabs.map((tab) => ({ id: tab.key, label: tab.label }))}
+        active={active}
+        onChange={(id) => onChange(id as Section)}
+      />
+    </div>
   );
 }
 
@@ -226,8 +289,6 @@ function AppShell() {
   const [section, setSection] = useState<Section>("accueil");
   const [collapsed, setCollapsed] = useState(false);
   const { canAccess, effectiveScreens, loading, saving, error, reload } = useMembership();
-  const { isV2, isV3 } = useTheme();
-
   useEffect(() => {
     if (!canAccess(section)) {
       setSection(effectiveScreens.includes("accueil") ? "accueil" : effectiveScreens[0] ?? "accueil");
@@ -243,6 +304,7 @@ function AppShell() {
     switch (section) {
       case "accueil": return <PageAccueil />;
       case "membres": return <PageMembres />;
+      case "inscription": return <PageInscription />;
       case "roles": return <PageRoles />;
       case "gouvernance": return <PageGouvernance />;
       case "participations": return <PageParticipations />;
@@ -266,11 +328,14 @@ function AppShell() {
       <Sidebar active={section} onChange={go} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
       <Topbar title={SECTION_TITLES[section]} collapsed={collapsed} />
       <main className="pt-16 min-h-screen transition-all duration-300" style={{ paddingLeft: collapsed ? "4rem" : "15rem" }}>
-        <div className={`${isV2 || isV3 ? "p-8" : "p-6"} max-w-7xl mx-auto`}>
+        <div className="p-8 max-w-7xl mx-auto">
           {loading ? (
             <PageLoader label="Chargement des données…" />
           ) : (
             <>
+              {ADMIN_SCREEN_KEYS.includes(section) && (
+                <AdminScreenTabs active={section} onChange={go} canAccess={canAccess} />
+              )}
               {error && (
                 <div className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-2">
                   <p className="text-xs text-red-700">{error}</p>
@@ -310,8 +375,24 @@ export default function App() {
   );
 }
 
+function PublicGate() {
+  const [page, setPage] = useState<PublicPage>(() =>
+    typeof window !== "undefined" ? readPublicPage() : "home",
+  );
+
+  useEffect(() => {
+    const sync = () => setPage(readPublicPage());
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
+
+  if (page === "login") return <LoginPage />;
+  if (page === "register") return <RegisterPage />;
+  return <PublicSite />;
+}
+
 function Root() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, mustChangePassword } = useAuth();
   return (
     <>
       <style>{`
@@ -324,7 +405,9 @@ function Root() {
           background-color: #ffffff !important;
         }
       `}</style>
-      {isAuthenticated ? <AppShell /> : <LoginPage />}
+      {isAuthenticated
+        ? (mustChangePassword ? <ForceChangePasswordPage /> : <AppShell />)
+        : <PublicGate />}
     </>
   );
 }

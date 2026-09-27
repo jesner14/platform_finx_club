@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Plus, Search, Shield, Check, Users, KeyRound, Award, Activity,
-  Calendar, Settings, TrendingUp, UserCheck, X, Eye, Edit, Trash2, Wallet, Upload, LineChart, ArrowDownToLine, PieChart, Briefcase, Layers, Percent, Banknote, Landmark,
+  Calendar, Settings, TrendingUp, UserCheck, X, Eye, Edit, Trash2, Wallet, Upload, LineChart, ArrowDownToLine, PieChart, Briefcase, Layers, Percent, Banknote, Landmark, ClipboardList,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api, ApiError } from "../api";
@@ -19,7 +19,7 @@ import {
   type ScreenKey,
 } from "./types";
 import {
-  Badge, Card, ConfirmDialog, EmptyState, Field, SectionTitle, Spinner, StatusBadge, fieldClass, fieldInputClass, roleTone,
+  Badge, Card, ConfirmDialog, EmptyState, Field, SectionTitle, Spinner, StatusBadge, WorkTabs, fieldClass, fieldInputClass, roleTone,
 } from "./ui";
 
 type VlRow = {
@@ -69,14 +69,89 @@ function todayIso() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+type AccueilTableId =
+  | "depots"
+  | "retraits"
+  | "solde"
+  | "etat"
+  | "vl"
+  | "portefeuille"
+  | "perfs"
+  | "montants"
+  | "capitaux";
+
+const ACCUEIL_GROUPS: {
+  id: string;
+  label: string;
+  tabs: { id: AccueilTableId; label: string }[];
+}[] = [
+  {
+    id: "mouvements",
+    label: "Mouvements",
+    tabs: [
+      { id: "depots", label: "Dépôts" },
+      { id: "retraits", label: "Retraits" },
+    ],
+  },
+  {
+    id: "parts",
+    label: "Parts",
+    tabs: [
+      { id: "solde", label: "Solde de parts" },
+      { id: "etat", label: "État des parts" },
+      { id: "vl", label: "Valeur liquidative" },
+    ],
+  },
+  {
+    id: "portefeuille",
+    label: "Portefeuille",
+    tabs: [{ id: "portefeuille", label: "Positions" }],
+  },
+  {
+    id: "historiques",
+    label: "Historiques",
+    tabs: [
+      { id: "perfs", label: "Performances" },
+      { id: "montants", label: "Montants investis" },
+      { id: "capitaux", label: "Capitaux nets" },
+    ],
+  },
+];
+
+function DateToolbar({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+}) {
+  return (
+    <>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${fieldClass} max-w-[11rem]`}
+      />
+      {value && (
+        <button type="button" onClick={() => onChange("")} className="text-[11px] text-muted-foreground underline">
+          Effacer
+        </button>
+      )}
+    </>
+  );
+}
+
 function MemberHistoriqueCard({
   title,
   path,
   formatValue,
+  embedded = false,
 }: {
   title: string;
   path: HistoriquePath;
   formatValue: (n: number) => string;
+  embedded?: boolean;
 }) {
   const [date, setDate] = useState("");
   const [page, setPage] = useState(0);
@@ -117,12 +192,14 @@ function MemberHistoriqueCard({
     };
   }, [path, date, page]);
 
-  return (
-    <Card className="p-5">
+  const body = (
+    <>
       <div className="flex flex-wrap items-end gap-3 mb-4">
-        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">{title}</p>
+        {!embedded && (
+          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">{title}</p>
+        )}
         {data?.latest && (
-          <div className="text-right">
+          <div className={embedded ? "mr-auto text-left" : "text-right"}>
             <p className="font-display text-2xl font-bold text-foreground">{formatValue(data.latest.valeur)}</p>
             <p className="font-mono text-[10px] text-muted-foreground">
               au {new Date(`${data.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
@@ -181,8 +258,11 @@ function MemberHistoriqueCard({
           </div>
         </div>
       )}
-    </Card>
+    </>
   );
+
+  if (embedded) return body;
+  return <Card className="p-5">{body}</Card>;
 }
 
 export function PageAccueil() {
@@ -231,6 +311,8 @@ export function PageAccueil() {
     page: number;
     size: number;
   } | null>(null);
+  const [dashTab, setDashTab] = useState<AccueilTableId>("depots");
+  const dashGroup = ACCUEIL_GROUPS.find((group) => group.tabs.some((tab) => tab.id === dashTab)) ?? ACCUEIL_GROUPS[0];
 
   useEffect(() => {
     let cancelled = false;
@@ -403,24 +485,65 @@ export function PageAccueil() {
         ))}
       </div>
 
-      <Card className="p-5">
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">Mes dépôts</p>
-          <input
-            type="date"
-            value={depotDate}
-            onChange={(e) => {
-              setDepotDate(e.target.value);
-              setDepotPage(0);
-            }}
-            className={`${fieldClass} max-w-[11rem]`}
-          />
-          {depotDate && (
-            <button type="button" onClick={() => { setDepotDate(""); setDepotPage(0); }} className="text-[11px] text-muted-foreground underline">
-              Effacer
-            </button>
-          )}
+      <Card className="overflow-hidden">
+        <div className="px-5 pt-4">
+          <div className="flex items-end gap-6 overflow-x-auto border-b border-border" role="tablist" aria-label="Sections du tableau de bord">
+            {ACCUEIL_GROUPS.map((group) => {
+              const active = dashGroup.id === group.id;
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setDashTab(group.tabs[0].id)}
+                  className={`relative shrink-0 pb-3 text-sm font-medium tracking-wide transition-colors ${
+                    active ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {group.label}
+                  {active && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-full bg-primary" />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-2 py-4">
+            {dashGroup.tabs.length > 1 && dashGroup.tabs.map((tab) => {
+              const active = dashTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setDashTab(tab.id)}
+                  className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium transition-colors ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              {dashTab === "depots" && (
+                <DateToolbar value={depotDate} onChange={(next) => { setDepotDate(next); setDepotPage(0); }} />
+              )}
+              {dashTab === "retraits" && (
+                <DateToolbar value={retraitDate} onChange={(next) => { setRetraitDate(next); setRetraitPage(0); }} />
+              )}
+              {dashTab === "solde" && (
+                <DateToolbar value={soldeDate} onChange={(next) => { setSoldeDate(next); setSoldePage(0); }} />
+              )}
+              {dashTab === "etat" && (
+                <DateToolbar value={etatDate} onChange={(next) => { setEtatDate(next); setEtatPage(0); }} />
+              )}
+            </div>
+          </div>
         </div>
+        <div className="px-5 pb-5">
+        {dashTab === "depots" && (
+        <>
         {depotLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
             <Spinner className="h-4 w-4" /> Chargement des dépôts…
@@ -478,26 +601,11 @@ export function PageAccueil() {
             </div>
           </div>
         )}
-      </Card>
+        </>
+        )}
 
-      <Card className="p-5">
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">Mes retraits</p>
-          <input
-            type="date"
-            value={retraitDate}
-            onChange={(e) => {
-              setRetraitDate(e.target.value);
-              setRetraitPage(0);
-            }}
-            className={`${fieldClass} max-w-[11rem]`}
-          />
-          {retraitDate && (
-            <button type="button" onClick={() => { setRetraitDate(""); setRetraitPage(0); }} className="text-[11px] text-muted-foreground underline">
-              Effacer
-            </button>
-          )}
-        </div>
+        {dashTab === "retraits" && (
+        <>
         {retraitLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
             <Spinner className="h-4 w-4" /> Chargement des retraits…
@@ -541,35 +649,20 @@ export function PageAccueil() {
             </div>
           </div>
         )}
-      </Card>
+        </>
+        )}
 
-      <Card className="p-5">
-        <div className="flex flex-wrap items-end gap-3 mb-4">
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">Solde de parts</p>
-          {soldes?.latest && (
-            <div className="text-right">
-              <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Solde actuel</p>
-              <p className="font-display text-2xl font-bold text-foreground">{formatMoney(soldes.latest.nombreParts, 4)}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">
-                au {new Date(`${soldes.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
-          )}
-          <input
-            type="date"
-            value={soldeDate}
-            onChange={(e) => {
-              setSoldeDate(e.target.value);
-              setSoldePage(0);
-            }}
-            className={`${fieldClass} max-w-[11rem]`}
-          />
-          {soldeDate && (
-            <button type="button" onClick={() => { setSoldeDate(""); setSoldePage(0); }} className="text-[11px] text-muted-foreground underline">
-              Effacer
-            </button>
-          )}
-        </div>
+        {dashTab === "solde" && (
+        <>
+        {soldes?.latest && (
+          <div className="mb-4">
+            <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Solde actuel</p>
+            <p className="font-display text-2xl font-bold text-foreground">{formatMoney(soldes.latest.nombreParts, 4)}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">
+              au {new Date(`${soldes.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        )}
         {soldeLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
             <Spinner className="h-4 w-4" /> Chargement des parts…
@@ -613,35 +706,20 @@ export function PageAccueil() {
             </div>
           </div>
         )}
-      </Card>
+        </>
+        )}
 
-      <Card className="p-5">
-        <div className="flex flex-wrap items-end gap-3 mb-4">
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">État des parts</p>
-          {etats?.latest && (
-            <div className="text-right">
-              <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Dernier état</p>
-              <p className="font-display text-2xl font-bold text-foreground">{formatMoney(etats.latest.nombreParts, 4)}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">
-                au {new Date(`${etats.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
-          )}
-          <input
-            type="date"
-            value={etatDate}
-            onChange={(e) => {
-              setEtatDate(e.target.value);
-              setEtatPage(0);
-            }}
-            className={`${fieldClass} max-w-[11rem]`}
-          />
-          {etatDate && (
-            <button type="button" onClick={() => { setEtatDate(""); setEtatPage(0); }} className="text-[11px] text-muted-foreground underline">
-              Effacer
-            </button>
-          )}
-        </div>
+        {dashTab === "etat" && (
+        <>
+        {etats?.latest && (
+          <div className="mb-4">
+            <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Dernier état</p>
+            <p className="font-display text-2xl font-bold text-foreground">{formatMoney(etats.latest.nombreParts, 4)}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">
+              au {new Date(`${etats.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        )}
         {etatLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
             <Spinner className="h-4 w-4" /> Chargement de l'état des parts…
@@ -685,20 +763,19 @@ export function PageAccueil() {
             </div>
           </div>
         )}
-      </Card>
+        </>
+        )}
 
-      <Card className="p-5">
-        <div className="flex flex-wrap items-end gap-3 mb-4">
-          <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest flex-1">Valeur liquidative</p>
-          {vl?.latest && (
-            <div className="text-right">
-              <p className="font-display text-2xl font-bold text-foreground">{formatMoney(vl.latest.valeur, 4)}</p>
-              <p className="font-mono text-[10px] text-muted-foreground">
-                au {new Date(`${vl.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
-              </p>
-            </div>
-          )}
-        </div>
+        {dashTab === "vl" && (
+        <>
+        {vl?.latest && (
+          <div className="mb-4">
+            <p className="font-display text-2xl font-bold text-foreground">{formatMoney(vl.latest.valeur, 4)}</p>
+            <p className="font-mono text-[10px] text-muted-foreground">
+              au {new Date(`${vl.latest.date}T00:00:00`).toLocaleDateString("fr-FR")}
+            </p>
+          </div>
+        )}
         {params.membreVoitToutesValeursLiquidatives ? (
           <>
             {vlLoading ? (
@@ -753,10 +830,11 @@ export function PageAccueil() {
             )}
           </>
         )}
-      </Card>
+        </>
+        )}
 
-      <Card className="p-5">
-        <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest mb-4">Valeur du portefeuille</p>
+        {dashTab === "portefeuille" && (
+        <>
         {portLoading ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground py-6">
             <Spinner className="h-4 w-4" /> Chargement du portefeuille…
@@ -796,23 +874,35 @@ export function PageAccueil() {
             </div>
           </div>
         )}
-      </Card>
+        </>
+        )}
 
-      <MemberHistoriqueCard
-        title="Historique des performances"
-        path="historiques-performances"
-        formatValue={(n) => `${formatMoney(n, 4)} %`}
-      />
-      <MemberHistoriqueCard
-        title="Historique des montants investis"
-        path="historiques-montants-investis"
-        formatValue={(n) => `${formatMoney(n)} F`}
-      />
-      <MemberHistoriqueCard
-        title="Historique des capitaux nets"
-        path="historiques-capitaux-nets"
-        formatValue={(n) => `${formatMoney(n)} F`}
-      />
+        {dashTab === "perfs" && (
+          <MemberHistoriqueCard
+            title="Historique des performances"
+            path="historiques-performances"
+            formatValue={(n) => `${formatMoney(n, 4)} %`}
+            embedded
+          />
+        )}
+        {dashTab === "montants" && (
+          <MemberHistoriqueCard
+            title="Historique des montants investis"
+            path="historiques-montants-investis"
+            formatValue={(n) => `${formatMoney(n)} F`}
+            embedded
+          />
+        )}
+        {dashTab === "capitaux" && (
+          <MemberHistoriqueCard
+            title="Historique des capitaux nets"
+            path="historiques-capitaux-nets"
+            formatValue={(n) => `${formatMoney(n)} F`}
+            embedded
+          />
+        )}
+        </div>
+      </Card>
     </div>
   );
 }
@@ -820,6 +910,7 @@ export function PageAccueil() {
 export function PageMembres() {
   const { members, roles, addMember, updateMember, removeMember, removeMembers, screenLabel, saving, error } = useMembership();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | MemberStatus>("all");
   const [pendingDelete, setPendingDelete] = useState<Member | null>(null);
   const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -838,18 +929,22 @@ export function PageMembres() {
 
   const selected = members.find((m) => m.id === selectedId);
   const filtered = useMemo(
-    () => members.filter((m) =>
-      m.nom.toLowerCase().includes(search.toLowerCase())
-      || m.id.includes(search)
-      || (m.matricule ?? "").toLowerCase().includes(search.toLowerCase())
-    ),
-    [members, search],
+    () => members.filter((m) => {
+      const q = search.toLowerCase();
+      const matchSearch = m.nom.toLowerCase().includes(q)
+        || m.id.includes(search)
+        || (m.matricule ?? "").toLowerCase().includes(q)
+        || (m.email ?? "").toLowerCase().includes(q);
+      const matchStatus = statusFilter === "all" || m.statut === statusFilter;
+      return matchSearch && matchStatus;
+    }),
+    [members, search, statusFilter],
   );
 
   const MEMBER_PAGE_SIZE = 10;
   useEffect(() => {
     setListPage(0);
-  }, [search]);
+  }, [search, statusFilter]);
   const memberPageCount = Math.max(1, Math.ceil(filtered.length / MEMBER_PAGE_SIZE));
   const memberPage = Math.min(listPage, memberPageCount - 1);
   const pagedMembers = filtered.slice(memberPage * MEMBER_PAGE_SIZE, memberPage * MEMBER_PAGE_SIZE + MEMBER_PAGE_SIZE);
@@ -976,6 +1071,16 @@ export function PageMembres() {
           <Search size={13} className="text-muted-foreground" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher…" className="bg-transparent text-xs w-full focus:outline-none" />
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as "all" | MemberStatus)}
+          className="finx-select h-9 px-3 rounded border border-border bg-card text-xs"
+        >
+          <option value="all">Tous les statuts</option>
+          {(Object.keys(STATUS_LABELS) as MemberStatus[]).map((k) => (
+            <option key={k} value={k}>{STATUS_LABELS[k]}</option>
+          ))}
+        </select>
         {selectedIds.length > 0 && (
           <button
             type="button"
@@ -989,6 +1094,10 @@ export function PageMembres() {
           <Plus size={13} /> Nouveau membre
         </button>
       </div>
+
+      {error && !modal && (
+        <p className="text-xs text-red-600 bg-red-500/10 border border-red-500/25 rounded-md px-3 py-2">{error}</p>
+      )}
 
       <Card>
         <div className="overflow-x-auto">
@@ -1042,6 +1151,7 @@ export function PageMembres() {
                     <td className="px-4 py-3">
                       <div className="flex flex-col gap-1">
                         <StatusBadge statut={m.statut} />
+                        {m.pendingInvestorValidation && <Badge variant="warning">Voir Inscription</Badge>}
                         {m.badgeInvestisseur && <Badge variant="premium">Investisseur</Badge>}
                         {m.enRecuperation && <Badge variant="warning">Récupération</Badge>}
                       </div>
@@ -1053,7 +1163,7 @@ export function PageMembres() {
                     <td className="px-4 py-3 font-mono text-xs">{m.capitalInvesti.toLocaleString("fr-FR")} F</td>
                     <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{m.nbPresences}P / {m.nbAbsences}A</td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 items-center">
                         <button onClick={() => { setSelectedId(m.id); setModal("view"); }} className="text-muted-foreground hover:text-primary"><Eye size={13} /></button>
                         <button onClick={() => openEdit(m)} className="text-muted-foreground hover:text-foreground"><Edit size={13} /></button>
                         <button onClick={() => { setSelectedId(m.id); setForm({ ...form, roleId: m.roleId, grantScreens: [...m.grantScreens], denyScreens: [...m.denyScreens], nom: m.nom, email: m.email ?? "", matricule: m.matricule ?? "", statut: m.statut, niveau: m.niveau, cotisation: m.cotisation, capitalInvesti: m.capitalInvesti, adhesion: m.adhesion }); setModal("access"); }} className="text-muted-foreground hover:text-primary"><Shield size={13} /></button>
@@ -1964,7 +2074,14 @@ export function PageDepots() {
         title="Dépôts"
         subtitle="Enregistrez un dépôt à la main (membre, date, montant) ou importez un Excel. Un membre peut avoir plusieurs dépôts, un par date."
       />
-      <Card className="p-5 space-y-4 max-w-3xl">
+      <WorkTabs
+        initial="list"
+        items={[
+          {
+            id: "create",
+            label: "Saisie",
+            content: (
+              <div className="space-y-4 max-w-3xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Nouveau dépôt</p>
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Membre" required error={manualErrors.memberId}>
@@ -2023,8 +2140,14 @@ export function PageDepots() {
         </button>
         {manualOk && <p className="text-xs text-emerald-700">{manualOk}</p>}
         {localError && !file && <p className="text-xs text-red-600">{localError}</p>}
-      </Card>
-      <Card className="p-5">
+              </div>
+            ),
+          },
+          {
+            id: "list",
+            label: "Historique",
+            content: (
+              <>
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <Field label="Date">
             <input
@@ -2140,13 +2263,15 @@ export function PageDepots() {
             )}
           </div>
         )}
-      </Card>
-      {!isSuperAdmin && (
-        <p className="text-xs text-amber-700 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2">
-          L'import Excel est réservé au super administrateur.
-        </p>
-      )}
-      <Card className="p-5 space-y-4 max-w-xl">
+              </>
+            ),
+          },
+          {
+            id: "import",
+            label: "Import",
+            hidden: !isSuperAdmin,
+            content: (
+              <div className="space-y-4 max-w-xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Import Excel</p>
         <Field label="Fichier Excel">
           <input
@@ -2183,7 +2308,11 @@ export function PageDepots() {
             )}
           </div>
         )}
-      </Card>
+              </div>
+            ),
+          },
+        ]}
+      />
       <ConfirmDialog
         open={confirmClear}
         title="Supprimer tous les dépôts"
@@ -2332,7 +2461,14 @@ export function PageRetraits() {
         title="Retraits"
         subtitle="Enregistrez un retrait à la main (membre, date, montant) ou importez un Excel. Un membre peut avoir plusieurs retraits, un par date."
       />
-      <Card className="p-5 space-y-4 max-w-3xl">
+      <WorkTabs
+        initial="list"
+        items={[
+          {
+            id: "create",
+            label: "Saisie",
+            content: (
+              <div className="space-y-4 max-w-3xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Nouveau retrait</p>
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Membre" required error={manualErrors.memberId}>
@@ -2355,8 +2491,14 @@ export function PageRetraits() {
         </button>
         {manualOk && <p className="text-xs text-emerald-700">{manualOk}</p>}
         {localError && !file && <p className="text-xs text-red-600">{localError}</p>}
-      </Card>
-      <Card className="p-5">
+              </div>
+            ),
+          },
+          {
+            id: "list",
+            label: "Historique",
+            content: (
+              <>
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <Field label="Date">
             <input type="date" value={filterDate} onChange={(e) => { setFilterDate(e.target.value); setPage(0); }} className={`${fieldClass} max-w-[12rem]`} />
@@ -2428,13 +2570,15 @@ export function PageRetraits() {
             )}
           </div>
         )}
-      </Card>
-      {!isSuperAdmin && (
-        <p className="text-xs text-amber-700 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2">
-          L'import Excel est réservé au super administrateur.
-        </p>
-      )}
-      <Card className="p-5 space-y-4 max-w-xl">
+              </>
+            ),
+          },
+          {
+            id: "import",
+            label: "Import",
+            hidden: !isSuperAdmin,
+            content: (
+              <div className="space-y-4 max-w-xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Import Excel</p>
         <Field label="Fichier Excel">
           <input
@@ -2464,7 +2608,11 @@ export function PageRetraits() {
             )}
           </div>
         )}
-      </Card>
+              </div>
+            ),
+          },
+        ]}
+      />
       <ConfirmDialog
         open={confirmClear}
         title="Supprimer tous les retraits"
@@ -3636,7 +3784,14 @@ function PageHistoriqueMembre({
         title={title}
         subtitle="Filtrez par date. 10 lignes par page. Chaque membre voit son historique dans son espace."
       />
-      <Card className="p-5 space-y-4 max-w-3xl">
+      <WorkTabs
+        initial="list"
+        items={[
+          {
+            id: "create",
+            label: "Saisie",
+            content: (
+              <div className="space-y-4 max-w-3xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Nouvelle ligne</p>
         <div className="grid sm:grid-cols-3 gap-3">
           <Field label="Membre" required error={manualErrors.memberId}>
@@ -3659,8 +3814,14 @@ function PageHistoriqueMembre({
         </button>
         {manualOk && <p className="text-xs text-emerald-700">{manualOk}</p>}
         {localError && !file && <p className="text-xs text-red-600">{localError}</p>}
-      </Card>
-      <Card className="p-5">
+              </div>
+            ),
+          },
+          {
+            id: "list",
+            label: "Historique",
+            content: (
+              <>
         <div className="flex flex-wrap items-end gap-3 mb-4">
           <Field label="Date">
             <input type="date" value={filterDate} onChange={(e) => { setFilterDate(e.target.value); setPage(0); }} className={`${fieldClass} max-w-[12rem]`} />
@@ -3715,13 +3876,15 @@ function PageHistoriqueMembre({
             )}
           </div>
         )}
-      </Card>
-      {!isSuperAdmin && (
-        <p className="text-xs text-amber-700 bg-amber-500/10 border border-amber-500/25 rounded-lg px-4 py-2">
-          L'import Excel est réservé au super administrateur.
-        </p>
-      )}
-      <Card className="p-5 space-y-4 max-w-xl">
+              </>
+            ),
+          },
+          {
+            id: "import",
+            label: "Import",
+            hidden: !isSuperAdmin,
+            content: (
+              <div className="space-y-4 max-w-xl">
         <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Import Excel</p>
         <Field label="Fichier Excel">
           <input
@@ -3748,7 +3911,11 @@ function PageHistoriqueMembre({
             <p className="text-muted-foreground">{report.membersCreated} membre(s) créé(s) (fiches à compléter)</p>
           </div>
         )}
-      </Card>
+              </div>
+            ),
+          },
+        ]}
+      />
       <ConfirmDialog
         open={confirmClear}
         title="Supprimer l'historique"
@@ -3764,6 +3931,7 @@ function PageHistoriqueMembre({
 export const NAV_ICONS = {
   accueil: Activity,
   membres: Users,
+  inscription: ClipboardList,
   roles: KeyRound,
   gouvernance: Award,
   participations: TrendingUp,

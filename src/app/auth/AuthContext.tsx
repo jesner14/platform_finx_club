@@ -14,15 +14,18 @@ export interface AuthUser {
   email: string;
   nom: string;
   role: string;
+  mustChangePassword?: boolean;
 }
 
 interface AuthContextValue {
   isAuthenticated: boolean;
   user: AuthUser | null;
   token: string | null;
+  mustChangePassword: boolean;
   login: (email: string, password: string) => Promise<string | null>;
   logout: () => void;
-  patchUser: (patch: Partial<Pick<AuthUser, "email" | "nom">>) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<string | null>;
+  patchUser: (patch: Partial<Pick<AuthUser, "email" | "nom" | "mustChangePassword">>) => void;
 }
 
 const TOKEN_KEY = "finx-token";
@@ -65,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [sessionExpiresAt, setSessionExpiresAt] = useState<number | null>(() => readNumber(SESSION_EXP_KEY));
   const refreshTokenRef = useRef(refreshToken);
   refreshTokenRef.current = refreshToken;
+  const tokenRef = useRef(token);
+  tokenRef.current = token;
 
   const persist = useCallback((
     nextToken: string | null,
@@ -102,12 +107,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const now = Date.now();
     const accessExp = now + body.expiresIn * 1000;
     const sessionExp = now + body.refreshExpiresIn * 1000;
+    const nextUser: AuthUser = {
+      ...body.user,
+      mustChangePassword: Boolean(body.user?.mustChangePassword),
+    };
     setToken(body.token);
     setRefreshToken(body.refreshToken);
-    setUser(body.user);
+    setUser(nextUser);
     setAccessExpiresAt(accessExp);
     setSessionExpiresAt(sessionExp);
-    persist(body.token, body.refreshToken, body.user, accessExp, sessionExp);
+    persist(body.token, body.refreshToken, nextUser, accessExp, sessionExp);
   }, [persist]);
 
   const clearSession = useCallback(() => {
@@ -131,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearSession();
   }, [clearSession]);
 
-  const patchUser = useCallback((patch: Partial<Pick<AuthUser, "email" | "nom">>) => {
+  const patchUser = useCallback((patch: Partial<Pick<AuthUser, "email" | "nom" | "mustChangePassword">>) => {
     setUser((prev) => {
       if (!prev) return prev;
       const next = { ...prev, ...patch };
@@ -187,6 +196,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [applySession]);
 
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const currentToken = tokenRef.current;
+    if (!currentToken) return "Session expirée. Reconnectez-vous.";
+    try {
+      const response = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${currentToken}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok) {
+        return (body?.message as string) || "Impossible de changer le mot de passe.";
+      }
+      applySession(body);
+      return null;
+    } catch {
+      return "Impossible de joindre le serveur. Vérifiez que le back est lancé.";
+    }
+  }, [applySession]);
+
   useEffect(() => {
     if (!sessionExpiresAt) return;
     const remaining = sessionExpiresAt - Date.now();
@@ -217,16 +249,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [token, accessExpiresAt, sessionExpiresAt, logout, refreshSession]);
 
+  const mustChangePassword = Boolean(user?.mustChangePassword);
+
   const value = useMemo(
     () => ({
       isAuthenticated: Boolean(token && user && sessionExpiresAt && sessionExpiresAt > Date.now()),
       user,
       token,
+      mustChangePassword,
       login,
       logout,
+      changePassword,
       patchUser,
     }),
-    [token, user, sessionExpiresAt, login, logout, patchUser],
+    [token, user, sessionExpiresAt, mustChangePassword, login, logout, changePassword, patchUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

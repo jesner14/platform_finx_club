@@ -61,6 +61,7 @@ interface MembershipContextValue {
   reload: () => Promise<void>;
   addMember: (data: Omit<Member, "id" | "avatar" | "fonctions" | "nbPresences" | "nbAbsences" | "consecutives" | "enRecuperation" | "groupes"> & Partial<Member> & { username: string; password: string }) => Promise<string | null>;
   updateMember: (id: string, patch: Partial<Member> & { password?: string }) => Promise<string | null>;
+  validateInvestor: (id: string) => Promise<string | null>;
   updateMyProfile: (input: { nom: string; email: string; username: string; password?: string }) => Promise<string | null>;
   removeMember: (id: string) => Promise<string | null>;
   removeMembers: (ids: string[]) => Promise<string | null>;
@@ -169,7 +170,7 @@ export function computeEffectiveScreens(member: Member, roles: Role[]): ScreenKe
 }
 
 export function MembershipProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, user, patchUser } = useAuth();
+  const { isAuthenticated, user, patchUser, mustChangePassword } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -202,12 +203,12 @@ export function MembershipProvider({ children }: { children: ReactNode }) {
   }, [applySnapshot]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || mustChangePassword) {
       setLoading(false);
       return;
     }
     void reload();
-  }, [isAuthenticated, reload]);
+  }, [isAuthenticated, mustChangePassword, reload]);
 
   const mutate = useCallback(async (fn: () => Promise<ClubSnapshot>) => {
     setSaving(true);

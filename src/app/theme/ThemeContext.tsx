@@ -7,11 +7,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Moon, Sun } from "lucide-react";
 
-export const THEME_VERSIONS = ["v1", "v2", "v3"] as const;
-export type ThemeVersion = (typeof THEME_VERSIONS)[number];
+export type ColorMode = "light" | "dark";
 
-const STORAGE_KEY = "finx-theme-version-r2";
+const STORAGE_KEY = "finx-color-mode";
 
 export interface BrandPalette {
   navy: string;
@@ -26,90 +26,84 @@ export interface BrandPalette {
   allocation: string[];
 }
 
-const PALETTES: Record<ThemeVersion, BrandPalette> = {
-  v1: {
-    navy: "#0B1B59",
-    accent: "#0B1B59",
-    premium: "#F5D251",
-    muted: "#5A6B8C",
-    card: "#FFFFFF",
-    border: "rgba(11,27,89,0.12)",
-    chartStroke: "#0B1B59",
-    chartFill: "#0B1B59",
-    grid: "rgba(11,27,89,0.08)",
-    allocation: ["#0B1B59", "#F5D251", "#01AAE4", "#3D4F8C", "#C5CDD9"],
-  },
-  v2: {
-    navy: "#0B1B59",
-    accent: "#F5D251",
-    premium: "#F5D251",
-    muted: "#5A6B8C",
-    card: "#FFFFFF",
-    border: "rgba(11,27,89,0.08)",
-    chartStroke: "#0B1B59",
-    chartFill: "#F5D251",
-    grid: "rgba(11,27,89,0.08)",
-    allocation: ["#0B1B59", "#F5D251", "#01AAE4", "#3D4F8C", "#C5CDD9"],
-  },
-  v3: {
-    navy: "#0B1B59",
-    accent: "#FFFFFF",
-    premium: "#F5D251",
-    muted: "#5A6B8C",
-    card: "rgba(255,255,255,0.62)",
-    border: "rgba(255,255,255,0.7)",
-    chartStroke: "#0B1B59",
-    chartFill: "#01AAE4",
-    grid: "rgba(11,27,89,0.08)",
-    allocation: ["#0B1B59", "#FFFFFF", "#01AAE4", "#F5D251", "#3D4F8C"],
-  },
+const LIGHT_BRAND: BrandPalette = {
+  navy: "#0B1B59",
+  accent: "#F5D251",
+  premium: "#F5D251",
+  muted: "#5A6B8C",
+  card: "#FFFFFF",
+  border: "rgba(11,27,89,0.08)",
+  chartStroke: "#0B1B59",
+  chartFill: "#F5D251",
+  grid: "rgba(11,27,89,0.08)",
+  allocation: ["#0B1B59", "#F5D251", "#01AAE4", "#3D4F8C", "#C5CDD9"],
+};
+
+const DARK_BRAND: BrandPalette = {
+  navy: "#F4F6FA",
+  accent: "#F5D251",
+  premium: "#F5D251",
+  muted: "#9AABC8",
+  card: "#141C3A",
+  border: "rgba(255,255,255,0.08)",
+  chartStroke: "#F5D251",
+  chartFill: "#F5D251",
+  grid: "rgba(255,255,255,0.08)",
+  allocation: ["#F5D251", "#01AAE4", "#8FA3C8", "#F4F6FA", "#3D4F8C"],
 };
 
 interface ThemeContextValue {
-  theme: ThemeVersion;
-  setTheme: (t: ThemeVersion) => void;
+  mode: ColorMode;
+  setMode: (mode: ColorMode) => void;
+  isDark: boolean;
   brand: BrandPalette;
-  isV2: boolean;
-  isV3: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function readStored(): ThemeVersion {
+function readStored(): ColorMode {
   try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "v1" || v === "v2" || v === "v3") return v;
+    const value = localStorage.getItem(STORAGE_KEY);
+    if (value === "light" || value === "dark") return value;
   } catch {
     /* ignore */
   }
-  return "v1";
+  return "light";
+}
+
+function applyMode(mode: ColorMode) {
+  const root = document.documentElement;
+  root.setAttribute("data-mode", mode);
+  root.classList.toggle("dark", mode === "dark");
+  root.style.colorScheme = mode;
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeVersion>(() =>
-    typeof window !== "undefined" ? readStored() : "v1",
-  );
+  const [mode, setModeState] = useState<ColorMode>(() => {
+    const next = typeof window !== "undefined" ? readStored() : "light";
+    if (typeof document !== "undefined") applyMode(next);
+    return next;
+  });
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
+    applyMode(mode);
     try {
-      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(STORAGE_KEY, mode);
     } catch {
       /* ignore */
     }
-  }, [theme]);
+  }, [mode]);
 
-  const setTheme = useCallback((t: ThemeVersion) => setThemeState(t), []);
+  const setMode = useCallback((next: ColorMode) => setModeState(next), []);
 
   const value = useMemo(
     () => ({
-      theme,
-      setTheme,
-      brand: PALETTES[theme],
-      isV2: theme === "v2",
-      isV3: theme === "v3",
+      mode,
+      setMode,
+      isDark: mode === "dark",
+      brand: mode === "dark" ? DARK_BRAND : LIGHT_BRAND,
     }),
-    [theme, setTheme],
+    [mode, setMode],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
@@ -119,4 +113,32 @@ export function useTheme() {
   const ctx = useContext(ThemeContext);
   if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
   return ctx;
+}
+
+export function ModeToggle() {
+  const { mode, setMode } = useTheme();
+  return (
+    <div className="flex items-center gap-0.5 p-0.5 rounded-lg border border-border bg-secondary/60">
+      <button
+        type="button"
+        onClick={() => setMode("light")}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider ${
+          mode === "light" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <Sun size={12} />
+        Clair
+      </button>
+      <button
+        type="button"
+        onClick={() => setMode("dark")}
+        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono uppercase tracking-wider ${
+          mode === "dark" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        <Moon size={12} />
+        Sombre
+      </button>
+    </div>
+  );
 }
