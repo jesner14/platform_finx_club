@@ -62,13 +62,22 @@ function Sidebar({
 
   return (
     <aside className={`finx-sidebar fixed left-0 top-0 h-full bg-sidebar border-r border-sidebar-border flex flex-col z-30 transition-all duration-300 ${collapsed ? "w-16" : "w-60"}`}>
-      <div className={`relative flex items-center gap-2.5 px-3 h-16 border-b border-sidebar-border shrink-0 ${collapsed ? "justify-center px-2" : ""}`}>
-        <button onClick={collapsed ? onToggle : undefined} className="shrink-0" type="button">
-          <img src="/symbol-finx.png" alt="FINX Club" className="w-9 h-9 rounded-lg object-cover" />
-        </button>
-        {!collapsed && (
+      <div className={`relative flex items-center gap-2 px-3 h-16 border-b border-sidebar-border shrink-0 ${collapsed ? "justify-center px-2" : ""}`}>
+        {collapsed ? (
+          <button onClick={onToggle} className="shrink-0" type="button" aria-label="Ouvrir le menu">
+            <img
+              src={isDark ? "/logo-finx-white.png" : "/logo-finx.png"}
+              alt="FINX CLUB"
+              className="h-7 w-10 object-contain object-left"
+            />
+          </button>
+        ) : (
           <>
-            <img src={isDark ? "/logo-finx-white.png" : "/logo-finx.png"} alt="FINX CLUB" className="h-8 w-auto object-contain flex-1 min-w-0" />
+            <img
+              src={isDark ? "/logo-finx-white.png" : "/logo-finx.png"}
+              alt="FINX CLUB"
+              className="h-10 w-auto object-contain flex-1 min-w-0"
+            />
             <button onClick={onToggle} className="text-sidebar-foreground/60 hover:text-sidebar-foreground shrink-0" type="button">
               <X size={14} />
             </button>

@@ -209,16 +209,16 @@ function AuthShell({ children }: { children: React.ReactNode }) {
         background: "linear-gradient(160deg, #0B1B59 0%, #13266B 42%, #070F33 100%)",
       }}
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-[#F5D251]" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-[#01AAE4]" />
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
           backgroundImage:
-            "linear-gradient(#F5D251 1px, transparent 1px), linear-gradient(90deg, #F5D251 1px, transparent 1px)",
+            "linear-gradient(#01AAE4 1px, transparent 1px), linear-gradient(90deg, #01AAE4 1px, transparent 1px)",
           backgroundSize: "64px 64px",
         }}
       />
-      <div className="absolute -left-24 top-24 w-72 h-72 rounded-full border border-[#F5D251]/20" />
+      <div className="absolute -left-24 top-24 w-72 h-72 rounded-full border border-[#01AAE4]/20" />
       <div className="absolute -right-16 bottom-10 w-96 h-96 rounded-full border border-[#01AAE4]/15" />
 
       <header className="relative z-10 flex items-center justify-between px-6 lg:px-10 h-16">
@@ -240,7 +240,7 @@ function AuthShell({ children }: { children: React.ReactNode }) {
 
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-[440px] finx-card bg-card rounded-[1.35rem] shadow-[0_30px_80px_rgba(0,0,0,0.28)] overflow-hidden">
-          <div className="h-1.5 bg-[#F5D251]" />
+          <div className="h-1.5 bg-[#01AAE4]" />
           <div className="px-8 pt-8 pb-9">
             <div className="flex items-center gap-3 mb-6">
               <img src="/symbol-finx.png" alt="" className="w-10 h-10 rounded-xl object-cover" />

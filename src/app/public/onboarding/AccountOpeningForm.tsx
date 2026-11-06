@@ -104,7 +104,7 @@ export function AccountOpeningForm({ data, opening, onChange, saving, error, onC
           type="button"
           disabled={saving || !opening.attestationExactitude || !opening.faitLe}
           onClick={onContinue}
-          className="h-11 px-6 rounded-full bg-[#F5D251] text-[#0B1B59] text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
+          className="h-11 px-6 rounded-full bg-[#0B1B59] text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
         >
           {saving ? <Loader2 size={15} className="animate-spin" /> : null}
           Valider et continuer

@@ -52,7 +52,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputClass =
-  "w-full h-11 rounded-xl border border-[#0B1B59]/12 bg-white px-3 text-sm text-[#0B1B59] placeholder:text-[#0B1B59]/35 focus:outline-none focus:border-[#F5D251] focus:ring-2 focus:ring-[#F5D251]/30";
+  "w-full h-11 rounded-xl border border-[#0B1B59]/12 bg-white px-3 text-sm text-[#0B1B59] placeholder:text-[#0B1B59]/35 focus:outline-none focus:border-[#01AAE4] focus:ring-2 focus:ring-[#01AAE4]/30";
 
 function ChoiceGrid({
   options,
@@ -468,7 +468,7 @@ export function QuestionnaireForm({
                 void onSaveDraft();
                 setSection((n) => n + 1);
               }}
-              className="h-11 px-5 rounded-full bg-[#F5D251] text-[#0B1B59] text-sm font-bold"
+              className="h-11 px-5 rounded-full bg-[#0B1B59] text-white text-sm font-bold"
             >
               Continuer
             </button>
@@ -477,7 +477,7 @@ export function QuestionnaireForm({
               type="button"
               onClick={() => void onComplete()}
               disabled={saving}
-              className="h-11 px-5 rounded-full bg-[#F5D251] text-[#0B1B59] text-sm font-bold inline-flex items-center gap-2"
+              className="h-11 px-5 rounded-full bg-[#0B1B59] text-white text-sm font-bold inline-flex items-center gap-2"
             >
               {saving ? <Loader2 size={15} className="animate-spin" /> : null}
               Valider et continuer

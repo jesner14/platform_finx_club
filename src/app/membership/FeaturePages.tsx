@@ -1697,8 +1697,13 @@ export function PageMonEspace() {
     if (!profile.nom.trim()) errors.nom = "Ce champ est obligatoire";
     if (!profile.email.trim()) errors.email = "Ce champ est obligatoire";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email.trim())) errors.email = "E-mail invalide";
-    if (profile.username.trim() && !/^[a-zA-Z0-9._-]{3,32}$/.test(profile.username.trim())) {
-      errors.username = "3 à 32 caractères (lettres, chiffres, point, _ ou -)";
+    if (profile.username.trim()) {
+      const u = profile.username.trim().toLowerCase();
+      const classic = /^[a-z0-9._-]{3,32}$/.test(u);
+      const emailLike = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(u) && u.length <= 180;
+      if (!classic && !emailLike) {
+        errors.username = "Pseudo (3–32 car., lettres/chiffres/._-) ou adresse e-mail";
+      }
     }
     if (profile.password && profile.password.length < 6) errors.password = "Au moins 6 caractères";
     setProfileErrors(errors);

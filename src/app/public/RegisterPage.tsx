@@ -302,7 +302,7 @@ export function RegisterPage() {
         background: "linear-gradient(160deg, #0B1B59 0%, #13266B 42%, #070F33 100%)",
       }}
     >
-      <div className="absolute inset-x-0 top-0 h-1 bg-[#F5D251]" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-[#0B1B59]" />
       <header className="relative z-10 flex items-center justify-between px-6 lg:px-10 h-16">
         <button type="button" onClick={() => goPublic("home")} className="flex items-center gap-3">
           <img src="/symbol-finx.png" alt="" className="w-9 h-9 rounded-xl object-cover" />
@@ -324,7 +324,7 @@ export function RegisterPage() {
         <button
           type="button"
           onClick={() => goPublic("home")}
-          className="mb-5 inline-flex items-center gap-2 text-xs text-[#F5D251] hover:underline"
+          className="mb-5 inline-flex items-center gap-2 text-xs text-[#01AAE4] hover:underline"
         >
           <ArrowLeft size={14} /> Retour au site
         </button>
@@ -346,7 +346,7 @@ export function RegisterPage() {
             <div className="mt-6 max-w-2xl">
               <div className="flex items-end justify-between gap-3 mb-2">
                 <p className="text-[13px] text-white/80">
-                  <span className="font-semibold text-[#F5D251]">
+                  <span className="font-semibold text-[#01AAE4]">
                     Étape {current}/{total}
                   </span>
                   <span className="text-white/45"> · </span>
@@ -358,7 +358,7 @@ export function RegisterPage() {
               </div>
               <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#F5D251] transition-[width] duration-300"
+                  className="h-full rounded-full bg-[#0B1B59] transition-[width] duration-300"
                   style={{ width: `${Math.max(pct, current === 1 ? 8 : pct)}%` }}
                 />
               </div>
@@ -370,7 +370,7 @@ export function RegisterPage() {
           className="mt-6 rounded-[1.6rem] bg-[#F4F6FA] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
           style={{ colorScheme: "light" }}
         >
-          <div className="h-1.5 bg-[#F5D251]" />
+          <div className="h-1.5 bg-[#0B1B59]" />
           <div className="px-5 sm:px-8 py-7">
             <p className="text-[11px] uppercase tracking-[0.16em] text-[#01AAE4] font-bold">{stepMeta.code}</p>
             <h2 className="mt-1 font-display text-2xl font-bold text-[#0B1B59]">{stepMeta.title}</h2>

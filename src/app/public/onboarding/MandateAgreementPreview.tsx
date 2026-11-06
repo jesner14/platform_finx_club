@@ -59,7 +59,7 @@ export function MandateAgreementPreview({ data, mandate, saving, error, onEdit, 
           type="button"
           disabled={saving}
           onClick={() => void onConfirm()}
-          className="h-11 px-6 rounded-full bg-[#F5D251] text-[#0B1B59] text-sm font-bold inline-flex items-center gap-2"
+          className="h-11 px-6 rounded-full bg-[#0B1B59] text-white text-sm font-bold inline-flex items-center gap-2"
         >
           {saving ? <Loader2 size={15} className="animate-spin" /> : null}
           Valider et enregistrer le document

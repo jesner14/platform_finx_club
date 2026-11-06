@@ -49,7 +49,7 @@ function Row({ label, value }: { label: string; value: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-5">
-      <h3 className="font-display text-[15px] font-bold text-[#0B1B59] border-b-2 border-[#F5D251] pb-1 mb-2">{title}</h3>
+      <h3 className="font-display text-[15px] font-bold text-[#0B1B59] border-b-2 border-[#01AAE4] pb-1 mb-2">{title}</h3>
       {children}
     </section>
   );
