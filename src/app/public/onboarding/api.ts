@@ -22,6 +22,14 @@ export function createApplication() {
   return api<InvestorApplication>("/api/public/investor-applications", { method: "POST" });
 }
 
+export function createOrResumeMyInvestorApplication() {
+  return api<InvestorApplication>("/api/me/investor-applications", { method: "POST" });
+}
+
+export function loadMyInvestorApplication() {
+  return api<InvestorApplication | undefined>("/api/me/investor-applications/current");
+}
+
 export function loadApplication(id: string) {
   return api<InvestorApplication>(`/api/public/investor-applications/${id}`);
 }

@@ -21,6 +21,8 @@ import {
 import {
   Badge, Card, ConfirmDialog, EmptyState, Field, SectionTitle, Spinner, StatusBadge, WorkTabs, fieldClass, fieldInputClass, roleTone,
 } from "./ui";
+import { InvestorOnboardingWizard } from "../public/onboarding/InvestorOnboardingWizard";
+import { loadMyInvestorApplication } from "../public/onboarding/api";
 
 type VlRow = {
   id: number;
@@ -1682,6 +1684,10 @@ export function PageMonEspace() {
   const [profileErrors, setProfileErrors] = useState<Partial<Record<"nom" | "email" | "username" | "password", string>>>({});
   const [profileOk, setProfileOk] = useState<string | null>(null);
   const [profileErr, setProfileErr] = useState<string | null>(null);
+  const [investorWizard, setInvestorWizard] = useState(false);
+  const [investorStatus, setInvestorStatus] = useState<string | null>(null);
+  const isVisitor = currentRole.id === "visiteur";
+  const isInvestisseur = currentRole.id === "investisseur" || currentUser.badgeInvestisseur;
 
   useEffect(() => {
     setProfile({
@@ -1691,6 +1697,26 @@ export function PageMonEspace() {
       password: "",
     });
   }, [currentUser.id, currentUser.nom, currentUser.email, currentUser.username]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (isInvestisseur) {
+      setInvestorStatus("INVESTISSEUR");
+      return;
+    }
+    (async () => {
+      try {
+        const dossier = await loadMyInvestorApplication();
+        if (cancelled) return;
+        setInvestorStatus(dossier?.status ?? null);
+      } catch {
+        if (!cancelled) setInvestorStatus(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser.id, isInvestisseur, investorWizard]);
 
   const saveProfile = async () => {
     const errors: Partial<Record<"nom" | "email" | "username" | "password", string>> = {};
@@ -1724,9 +1750,84 @@ export function PageMonEspace() {
     setProfileOk("Informations enregistrées.");
   };
 
+  if (investorWizard) {
+    return (
+      <div className="space-y-6">
+        <SectionTitle label="Visiteur" title="Devenir Membre Investisseur" subtitle="Complétez les 6 questionnaires pour finaliser votre candidature." />
+        <InvestorOnboardingWizard
+          onClose={() => setInvestorWizard(false)}
+          onCompleted={() => {
+            setInvestorStatus("COMPLETED");
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (isVisitor) {
+    return (
+      <div className="space-y-6">
+        <SectionTitle
+          label="Visiteur"
+          title="Mon Espace"
+          subtitle="Votre espace sera enrichi progressivement. Vous pouvez dès maintenant démarrer une candidature investisseur."
+        />
+        <Card className="p-8 max-w-2xl">
+          <p className="font-display text-xl font-bold text-foreground">Bienvenue, {currentUser.nom}</p>
+          <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
+            Votre accès visiteur est actif. Les écrans métier seront ajoutés petit à petit. Pour devenir membre
+            investisseur, lancez le parcours de questionnaires.
+          </p>
+          {investorStatus === "COMPLETED" ? (
+            <div className="mt-6 rounded-xl border border-primary/25 bg-primary/5 p-4 text-sm text-foreground">
+              Votre dossier investisseur a été transmis. Il est en attente de validation par l’administration FINX Club.
+            </div>
+          ) : investorStatus && investorStatus !== "REJECTED" ? (
+            <button
+              type="button"
+              onClick={() => setInvestorWizard(true)}
+              className="mt-6 h-11 px-5 rounded-full bg-primary text-primary-foreground text-sm font-bold"
+            >
+              Reprendre mon dossier investisseur
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setInvestorWizard(true)}
+              className="mt-6 h-11 px-5 rounded-full bg-primary text-primary-foreground text-sm font-bold"
+            >
+              Devenir Membre Investisseur
+            </button>
+          )}
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <SectionTitle label="Membre" title="Mon Espace" subtitle="Consultez votre parcours et mettez à jour vos informations personnelles." />
+      {!isInvestisseur && (
+        <Card className="p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="font-semibold text-foreground">Devenir Membre Investisseur</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {investorStatus === "COMPLETED"
+                ? "Dossier transmis — en attente de validation admin."
+                : "Complétez les 6 questionnaires pour ouvrir votre compte investisseur."}
+            </p>
+          </div>
+          {investorStatus !== "COMPLETED" && (
+            <button
+              type="button"
+              onClick={() => setInvestorWizard(true)}
+              className="h-10 px-4 rounded-full bg-primary text-primary-foreground text-xs font-bold"
+            >
+              {investorStatus ? "Reprendre le dossier" : "Démarrer"}
+            </button>
+          )}
+        </Card>
+      )}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="p-5 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 border-2 border-primary/30 flex items-center justify-center mb-3">
@@ -3937,6 +4038,7 @@ export const NAV_ICONS = {
   accueil: Activity,
   membres: Users,
   inscription: ClipboardList,
+  visiteurs: Users,
   roles: KeyRound,
   gouvernance: Award,
   participations: TrendingUp,

@@ -27,6 +27,7 @@ import {
   PageValeursLiquidatives,
 } from "./membership/FeaturePages";
 import { PageInscription } from "./membership/InscriptionPage";
+import { PageVisiteurs } from "./membership/VisitorsPage";
 import { ADMIN_NAV_GROUPS, ADMIN_SCREEN_KEYS, ALL_SCREENS, MEMBER_SUBMENUS, type ScreenKey } from "./membership/types";
 import { ModeToggle, ThemeProvider, useTheme } from "./theme/ThemeContext";
 import { PageLoader, PillTabs, SavingOverlay } from "./membership/ui";
@@ -314,6 +315,7 @@ function AppShell() {
       case "accueil": return <PageAccueil />;
       case "membres": return <PageMembres />;
       case "inscription": return <PageInscription />;
+      case "visiteurs": return <PageVisiteurs />;
       case "roles": return <PageRoles />;
       case "gouvernance": return <PageGouvernance />;
       case "participations": return <PageParticipations />;

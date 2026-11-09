@@ -7,6 +7,7 @@ export type ScreenKey =
   | "participations"
   | "sessions"
   | "inscription"
+  | "visiteurs"
   | "mon-espace"
   | "parametres"
   | "depots"
@@ -139,6 +140,7 @@ export const ALL_SCREENS: { key: ScreenKey; label: string; group: string; parent
   { key: "accueil", label: "Tableau de bord", group: "Principal" },
   { key: "membres", label: "Membres", group: "Gestion" },
   { key: "inscription", label: "Inscription", group: "Gestion", parent: "membres" },
+  { key: "visiteurs", label: "Visiteurs", group: "Gestion", parent: "membres" },
   { key: "roles", label: "Rôles & privilèges", group: "Gestion", parent: "membres" },
   { key: "gouvernance", label: "Gouvernance", group: "Gestion", parent: "membres" },
   { key: "participations", label: "Participations", group: "Gestion", parent: "membres" },
