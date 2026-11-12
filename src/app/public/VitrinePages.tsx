@@ -1,7 +1,10 @@
+import { useState } from "react";
 import {
+  ArrowRight,
   BookOpen,
   Briefcase,
   Building2,
+  ChevronDown,
   GraduationCap,
   Handshake,
   LineChart,
@@ -9,11 +12,14 @@ import {
   MapPin,
   Phone,
   Plane,
+  Search,
   ShieldAlert,
   Sparkles,
   Users,
 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { CtaButton, PageHero, Section } from "./PublicShell";
+import { useTheme } from "../theme/ThemeContext";
 import { goPublic } from "./publicNav";
 
 function Pill({ children }: { children: string }) {
@@ -150,13 +156,64 @@ export function DevenirMembrePage() {
 }
 
 export function InvestirPage() {
+  const { isDark } = useTheme();
+  const reduceMotion = useReducedMotion();
+
   return (
     <>
-      <PageHero
-        kicker="Programmes"
-        title="Investir avec méthode, comprendre avant de s’engager"
-        lead="FINX Club présente plusieurs univers d’investissement. Chaque programme possède ses propres objectifs, modalités, documents d’information, risques et conditions de participation. L’accès à l’investissement reste distinct de l’adhésion au Club."
-      />
+      <section className={`finx-invest-hero px-4 py-5 sm:px-7 sm:py-7 ${
+        isDark ? "bg-[#0C1426]" : "bg-[#F4F7FB]"
+      }`}>
+        <div className={`mx-auto grid max-w-7xl overflow-hidden rounded-[1.5rem] border shadow-[0_28px_80px_-40px_rgba(5,12,30,0.5)] lg:grid-cols-[1.03fr_0.97fr] ${
+          isDark ? "border-white/[0.08] bg-[#101A2D]" : "border-[#0B1B59]/[0.08] bg-white"
+        }`}>
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, x: -28 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.7, ease: "easeOut" }}
+            className="relative z-10 flex flex-col justify-center px-6 py-10 sm:px-10 sm:py-12 lg:px-14 lg:py-16"
+          >
+            <p className={`mb-4 inline-flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.2em] sm:text-[11px] ${
+              isDark ? "text-[#69D2F2]" : "text-[#087EA4]"
+            }`}>
+              <LineChart size={15} strokeWidth={1.8} />
+              Programmes d’investissement
+            </p>
+            <h1 className={isDark ? "text-white" : "text-[#0B1B59]"}>
+              Investir avec méthode, comprendre avant de s’engager
+            </h1>
+            <p className={`mt-5 max-w-xl text-[13px] leading-6 sm:text-[14px] sm:leading-7 ${
+              isDark ? "text-[#B9C4D8]" : "text-[#5A6780]"
+            }`}>
+              FINX Club présente plusieurs univers d’investissement. Chaque programme possède ses propres objectifs,
+              modalités, documents d’information, risques et conditions de participation. L’accès à l’investissement
+              reste distinct de l’adhésion au Club.
+            </p>
+            <div className={`mt-6 flex items-start gap-3 border-t pt-5 text-[11px] leading-5 sm:text-[12px] ${
+              isDark ? "border-white/[0.09] text-white/55" : "border-[#0B1B59]/[0.09] text-[#6A768C]"
+            }`}>
+              <ShieldAlert className={`mt-0.5 shrink-0 ${isDark ? "text-[#69D2F2]" : "text-[#087EA4]"}`} size={16} />
+              <span>Les investissements comportent des risques. Aucun rendement n’est garanti.</span>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, scale: 1.035 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: reduceMotion ? 0 : 0.9, ease: "easeOut" }}
+            className="relative min-h-[230px] overflow-hidden sm:min-h-[300px] lg:min-h-[500px]"
+          >
+            <img
+              src="/resources/images/investissement.png"
+              alt="Graphiques illustrant l’évolution des marchés financiers"
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#07101F]/65 via-transparent to-transparent lg:bg-gradient-to-r lg:from-[#101A2D]/35 lg:via-transparent lg:to-transparent"
+            />
+          </motion.div>
+        </div>
+      </section>
       <Section>
         <div className="grid lg:grid-cols-2 gap-5">
           <article className="rounded-[1.6rem] border border-white/10 bg-gradient-to-br from-[#0E121C] to-[#0B1B59]/40 p-7 md:p-8">
@@ -409,59 +466,270 @@ const FAQ_ITEMS = [
   {
     q: "Qu’est-ce que FINX Club ?",
     a: "FINX Club est un GIE qui réunit investissement, communauté académique et professionnelle, éducation financière et opportunités de développement.",
+    category: "Le Club",
   },
   {
     q: "Faut-il investir pour devenir membre ?",
     a: "Non. L’adhésion au Club et l’investissement sont des démarches distinctes.",
+    category: "Adhésion",
   },
   {
     q: "Quels programmes sont présentés ?",
     a: "FINX Bourse et FINX Transport. Les modalités et risques diffèrent selon les programmes.",
+    category: "Investissement",
   },
   {
     q: "Comment obtenir le statut de membre actif ?",
     a: "Le premier niveau est accessible après deux participations éligibles. Les niveaux et avantages évoluent selon les règles du Club.",
+    category: "Adhésion",
   },
   {
     q: "Comment devenir membre investisseur ?",
     a: "Le badge Membre Investisseur est attribué à toute personne ayant rejoint au moins un programme d’investissement du Club, selon les conditions applicables.",
+    category: "Investissement",
   },
   {
     q: "Puis-je suivre mon investissement en ligne ?",
     a: "Oui, après validation du dossier et activation de l’accès, le tableau de bord sécurisé est conçu pour présenter les informations financières disponibles.",
+    category: "Investissement",
   },
   {
     q: "Les rendements sont-ils garantis ?",
     a: "Non. Tout investissement comporte des risques, y compris la perte de tout ou partie du capital.",
+    category: "Investissement",
   },
   {
     q: "Les événements sont-ils ouverts aux non-membres ?",
     a: "Les événements publics peuvent être ouverts aux visiteurs. Certains événements ou sessions sont réservés à des statuts déterminés.",
+    category: "Événements",
   },
   {
     q: "Comment rejoindre le Club ?",
     a: "Vous pouvez créer un compte et transmettre une demande d’adhésion via le parcours prévu sur la plateforme.",
+    category: "Adhésion",
   },
-];
+] as const;
+
+const FAQ_CATEGORIES = ["Tout", "Le Club", "Adhésion", "Investissement", "Événements"] as const;
 
 export function FaqPage() {
+  const { isDark } = useTheme();
+  const reduceMotion = useReducedMotion();
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<(typeof FAQ_CATEGORIES)[number]>("Tout");
+  const [openQuestion, setOpenQuestion] = useState<string | null>(FAQ_ITEMS[0].q);
+  const visibleQuestions = FAQ_ITEMS.filter((item) => {
+    const matchesCategory = category === "Tout" || item.category === category;
+    const normalizedQuery = query.trim().toLocaleLowerCase("fr");
+    const matchesQuery =
+      !normalizedQuery ||
+      item.q.toLocaleLowerCase("fr").includes(normalizedQuery) ||
+      item.a.toLocaleLowerCase("fr").includes(normalizedQuery);
+    return matchesCategory && matchesQuery;
+  });
+
   return (
-    <>
-      <PageHero kicker="FAQ" title="Foire aux questions" lead="Les réponses essentielles pour comprendre FINX Club, l’adhésion et l’investissement." />
-      <Section>
-        <div className="space-y-3 max-w-3xl">
-          {FAQ_ITEMS.map((item) => (
-            <details key={item.q} className="group rounded-2xl border border-white/10 bg-[#0E121C] px-5 py-4">
-              <summary className="cursor-pointer list-none font-semibold text-[15px] flex justify-between gap-4">
-                {item.q}
-                <span className="text-[#01AAE4] group-open:rotate-45 transition-transform">+</span>
-              </summary>
-              <p className="mt-3 text-[14px] text-white/55 leading-relaxed">{item.a}</p>
-            </details>
-          ))}
+    <div className={isDark ? "bg-[#0C1426] text-[#F4F6FA]" : "bg-[#F7F9FC] text-[#17213B]"}>
+      <section className={`relative isolate overflow-hidden border-b ${
+        isDark ? "border-white/[0.07] bg-[#101A2D]" : "border-[#0B1B59]/[0.06] bg-white"
+      }`}>
+        <div className={`pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full blur-3xl ${
+          isDark ? "bg-[#01AAE4]/[0.09]" : "bg-[#01AAE4]/[0.07]"
+        }`} />
+        <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-12 sm:px-8 sm:pb-12 sm:pt-16">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.65, ease: "easeOut" }}
+            className="max-w-3xl"
+          >
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${
+              isDark ? "text-[#69D2F2]" : "text-[#087EA4]"
+            }`}>
+              Centre d’aide FINX Club
+            </p>
+            <h1 className={`mt-3 text-[clamp(2rem,4vw,3.2rem)] font-bold leading-[1.08] tracking-[-0.04em] ${
+              isDark ? "text-white" : "text-[#0B1B59]"
+            }`}>
+              Des réponses pour avancer sereinement
+            </h1>
+            <p className={`mt-4 max-w-2xl text-[14px] leading-7 sm:text-[15px] ${
+              isDark ? "text-[#B9C4D8]" : "text-[#5A6780]"
+            }`}>
+              Retrouvez les informations essentielles sur le Club, l’adhésion et les programmes d’investissement.
+            </p>
+          </motion.div>
+
+          <label className="relative mt-8 block max-w-2xl">
+            <Search size={18} className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${
+              isDark ? "text-[#91A0B8]" : "text-[#7B879A]"
+            }`} />
+            <span className="sr-only">Rechercher dans les questions fréquentes</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Rechercher une question, un sujet…"
+              className={`h-12 w-full rounded-xl border pl-11 pr-4 text-[13px] outline-none transition focus:border-[#01AAE4] focus:ring-2 focus:ring-[#01AAE4]/20 ${
+                isDark
+                  ? "border-white/[0.1] bg-[#0C1426] text-white placeholder:text-white/40"
+                  : "border-[#0B1B59]/[0.1] bg-[#FBFCFE] text-[#17213B] placeholder:text-[#8993A5]"
+              }`}
+            />
+          </label>
         </div>
-      </Section>
-    </>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
+        <div className="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-12">
+          <aside>
+            <p className={`mb-3 text-[10px] font-semibold uppercase tracking-[0.16em] ${
+              isDark ? "text-[#9EABC2]" : "text-[#78849A]"
+            }`}>
+              Parcourir par sujet
+            </p>
+            <div className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+              {FAQ_CATEGORIES.map((item) => {
+                const count = item === "Tout"
+                  ? FAQ_ITEMS.length
+                  : FAQ_ITEMS.filter((faq) => faq.category === item).length;
+                const selected = category === item;
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setCategory(item)}
+                    className={`inline-flex shrink-0 cursor-pointer items-center justify-between gap-4 rounded-lg px-3 py-2.5 text-left text-[12px] font-medium transition-colors lg:w-full ${
+                      selected
+                        ? isDark
+                          ? "bg-[#01AAE4]/[0.12] text-[#8DDEF5]"
+                          : "bg-[#EAF7FC] text-[#075F7C]"
+                        : isDark
+                          ? "text-[#B9C4D8] hover:bg-white/[0.04] hover:text-white"
+                          : "text-[#5A6780] hover:bg-[#0B1B59]/[0.04] hover:text-[#0B1B59]"
+                    }`}
+                  >
+                    {item}
+                    <span className={`text-[10px] ${selected
+                      ? isDark ? "text-[#8DDEF5]/75" : "text-[#075F7C]/70"
+                      : isDark ? "text-white/35" : "text-[#8993A5]"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="min-w-0">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className={`text-[15px] font-semibold ${isDark ? "text-white" : "text-[#0B1B59]"}`}>
+                Questions fréquentes
+              </h2>
+              <span className={`text-[11px] ${isDark ? "text-[#9EABC2]" : "text-[#7B879A]"}`}>
+                {visibleQuestions.length} {visibleQuestions.length > 1 ? "réponses" : "réponse"}
+              </span>
+            </div>
+
+            <div className="space-y-2.5">
+              <AnimatePresence mode="popLayout">
+                {visibleQuestions.map((item) => {
+                  const isOpen = openQuestion === item.q;
+                  const questionIndex = FAQ_ITEMS.indexOf(item);
+                  const questionId = `faq-question-${questionIndex}`;
+                  const answerId = `faq-answer-${questionIndex}`;
+                  return (
+                    <motion.article
+                      key={item.q}
+                      layout
+                      initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.25, ease: "easeOut" }}
+                      className={`overflow-hidden rounded-xl border transition-colors ${
+                        isOpen
+                          ? isDark
+                            ? "border-[#01AAE4]/30 bg-[#141E34]"
+                            : "border-[#01AAE4]/35 bg-white"
+                          : isDark
+                            ? "border-white/[0.08] bg-[#101A2D]"
+                            : "border-[#0B1B59]/[0.08] bg-white"
+                      }`}
+                    >
+                      <h3>
+                        <button
+                          id={questionId}
+                          type="button"
+                          aria-expanded={isOpen}
+                          aria-controls={answerId}
+                          onClick={() => setOpenQuestion(isOpen ? null : item.q)}
+                          className={`flex w-full cursor-pointer items-center justify-between gap-4 px-4 py-4 text-left sm:px-5 ${
+                            isDark ? "text-white" : "text-[#0B1B59]"
+                          }`}
+                        >
+                          <span className="text-[13px] font-semibold leading-5 sm:text-[14px]">{item.q}</span>
+                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors ${
+                            isOpen
+                              ? "bg-[#01AAE4]/[0.12] text-[#087EA4]"
+                              : isDark ? "bg-white/[0.05] text-[#AEBBD0]" : "bg-[#0B1B59]/[0.04] text-[#65718A]"
+                          }`}>
+                            <ChevronDown size={16} className={`transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`} />
+                          </span>
+                        </button>
+                      </h3>
+                      <motion.div
+                        id={answerId}
+                        role={isOpen ? "region" : undefined}
+                        aria-labelledby={questionId}
+                        aria-hidden={!isOpen}
+                        initial={false}
+                        animate={{ height: isOpen ? "auto" : 0, opacity: isOpen ? 1 : 0 }}
+                        transition={{ duration: reduceMotion ? 0 : 0.28, ease: "easeOut" }}
+                        className="overflow-hidden"
+                      >
+                        <p className={`border-t px-4 pb-4 pt-3 text-[13px] leading-6 sm:px-5 ${
+                          isDark ? "border-white/[0.07] text-[#B9C4D8]" : "border-[#0B1B59]/[0.07] text-[#5A6780]"
+                        }`}>
+                          {item.a}
+                        </p>
+                      </motion.div>
+                    </motion.article>
+                  );
+                })}
+              </AnimatePresence>
+
+              {visibleQuestions.length === 0 && (
+                <div className={`rounded-xl border border-dashed px-5 py-10 text-center ${
+                  isDark ? "border-white/15 text-[#B9C4D8]" : "border-[#0B1B59]/15 text-[#5A6780]"
+                }`}>
+                  <Search size={21} className="mx-auto mb-3 opacity-60" />
+                  <p className="text-[13px] font-semibold">Aucun résultat trouvé</p>
+                  <p className="mt-1 text-[12px]">Essayez un autre mot-clé ou choisissez un autre sujet.</p>
+                </div>
+              )}
+            </div>
+
+            <div className={`mt-8 flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6 ${
+              isDark ? "border-white/[0.08] bg-[#141E34]" : "border-[#0B1B59]/[0.07] bg-white"
+            }`}>
+              <div>
+                <p className={`text-[14px] font-semibold ${isDark ? "text-white" : "text-[#0B1B59]"}`}>
+                  Vous ne trouvez pas votre réponse ?
+                </p>
+                <p className={`mt-1 text-[12px] leading-5 ${isDark ? "text-[#B9C4D8]" : "text-[#6A768C]"}`}>
+                  Notre équipe peut vous orienter vers les bonnes informations.
+                </p>
+              </div>
+              <CtaButton onClick={() => goPublic("contact")}>
+                Nous contacter <ArrowRight size={15} className="ml-2" />
+              </CtaButton>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 

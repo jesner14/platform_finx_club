@@ -1,287 +1,308 @@
-@custom-variant dark (&:is(.dark *));
 
-/* ─── Charte FINX (constantes) ─── */
+/* =========================================================
+   FINX CLUB — DESIGN SYSTEM
+   Tailwind CSS 4
+   Typography: Inter
+   Primary: Navy
+   Secondary: Cyan
+   Premium accent: Gold
+   ========================================================= */
+
+/* =========================================================
+   1. DARK MODE CONFIGURATION
+   Compatible avec html[data-mode="dark"]
+   ========================================================= */
+
+@custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *));
+
+/* =========================================================
+   2. BRAND COLORS & GLOBAL DESIGN TOKENS
+   ========================================================= */
+
 :root {
+  /* Brand identity */
   --finx-navy: #0B1B59;
+  --finx-navy-light: #13266B;
   --finx-cyan: #01AAE4;
+  --finx-cyan-hover: #0098CF;
   --finx-white: #FFFFFF;
-  --finx-black: #000000;
+  --finx-black: #080D1B;
   --finx-premium: #F5D251;
-  --font-weight-medium: 500;
-  --font-weight-normal: 400;
-  --destructive: #C0392B;
-  --destructive-foreground: #ffffff;
 
-  --font-size: 16.5px;
-  --background: #EBEFF7;
-  --foreground: #0B1B59;
+  /* Typography */
+  --font-family-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  --font-size: 16px;
+
+  /* Light theme */
+  --background: #F5F7FB;
+  --foreground: #17213B;
+
   --card: #FFFFFF;
-  --card-foreground: #0B1B59;
+  --card-foreground: #17213B;
+
   --popover: #FFFFFF;
-  --popover-foreground: #0B1B59;
-  --primary: #F5D251;
-  --primary-foreground: #0B1B59;
-  --secondary: #E8EDF6;
+  --popover-foreground: #17213B;
+
+  /* Primary: Navy */
+  --primary: #0B1B59;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary: Cyan */
+  --secondary: #EAF7FC;
   --secondary-foreground: #0B1B59;
-  --muted: #E8EDF6;
-  --muted-foreground: #5A6B8C;
+
+  /* Muted */
+  --muted: #EEF1F6;
+  --muted-foreground: #66738A;
+
+  /* Accent */
   --accent: #01AAE4;
   --accent-foreground: #FFFFFF;
-  --border: rgba(11, 27, 89, 0.08);
+
+  /* Premium */
+  --premium: #F5D251;
+  --premium-foreground: #0B1B59;
+
+  /* Status */
+  --destructive: #C0392B;
+  --destructive-foreground: #FFFFFF;
+
+  --success: #059669;
+  --warning: #D97706;
+  --info: #0284C7;
+
+  /* Borders and inputs */
+  --border: #E2E7F0;
   --input: #FFFFFF;
   --input-background: #FFFFFF;
   --switch-background: #C5CDD9;
-  --ring: #F5D251;
+  --ring: #01AAE4;
+
+  /* Charts */
   --chart-1: #0B1B59;
-  --chart-2: #F5D251;
-  --chart-3: #01AAE4;
+  --chart-2: #01AAE4;
+  --chart-3: #F5D251;
   --chart-4: #3D4F8C;
-  --chart-5: #C5CDD9;
+  --chart-5: #8FA3C8;
+
+  /* Sidebar */
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #0B1B59;
+  --sidebar-foreground: #17213B;
   --sidebar-primary: #0B1B59;
-  --sidebar-primary-foreground: #0B1B59;
-  --sidebar-accent: rgba(245, 210, 81, 0.28);
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EAF7FC;
   --sidebar-accent-foreground: #0B1B59;
-  --sidebar-border: rgba(11, 27, 89, 0.08);
-  --sidebar-ring: #F5D251;
-  --premium: #F5D251;
-  --premium-foreground: #0B1B59;
+  --sidebar-border: #E2E7F0;
+  --sidebar-ring: #01AAE4;
+
+  /* Hero */
   --hero-from: #0B1B59;
   --hero-via: #13266B;
   --hero-to: #070F33;
   --hero-fg: #FFFFFF;
-  --hero-muted: #8FA3C8;
-  --hero-grid: #F5D251;
-  --success: #059669;
-  --surface-tint: rgba(11, 27, 89, 0.05);
-  --radius: 0.9rem;
+  --hero-muted: #B4C2DE;
+  --hero-grid: #01AAE4;
+
+  /* Surfaces */
+  --surface-tint: rgba(11, 27, 89, 0.035);
+
+  /* Tables */
+  --table-row: #FFFFFF;
+  --table-row-alt: #F5F7FB;
+  --table-row-hover: #EAF1FA;
+
+  /* Radius */
+  --radius: 0.75rem;
 }
 
+/* =========================================================
+   3. DARK THEME
+   ========================================================= */
+
 html[data-mode="dark"] {
-  --background: #080E24;
+  color-scheme: dark;
+
+  --background: #080D1B;
   --foreground: #F4F6FA;
-  --card: #141C3A;
+
+  --card: #111A2B;
   --card-foreground: #F4F6FA;
-  --popover: #141C3A;
+
+  --popover: #111A2B;
   --popover-foreground: #F4F6FA;
-  --primary: #F5D251;
-  --primary-foreground: #0B1B59;
-  --secondary: #1A2450;
-  --secondary-foreground: #F4F6FA;
-  --muted: #1A2450;
-  --muted-foreground: #9AABC8;
+
+  /* Primary */
+  --primary: #01AAE4;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --secondary: #17243A;
+  --secondary-foreground: #EAF1FC;
+
+  /* Muted */
+  --muted: #17243A;
+  --muted-foreground: #A0AEC2;
+
+  /* Accent */
   --accent: #01AAE4;
   --accent-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.08);
-  --input: #1A2450;
-  --input-background: #1A2450;
-  --switch-background: #3D4F8C;
-  --ring: #F5D251;
-  --chart-1: #F5D251;
-  --chart-2: #01AAE4;
+
+  /* Premium */
+  --premium: #F5D251;
+  --premium-foreground: #0B1B59;
+
+  /* Status */
+  --destructive: #F87171;
+  --destructive-foreground: #FFFFFF;
+
+  --success: #34D399;
+  --warning: #FBBF24;
+  --info: #38BDF8;
+
+  /* Borders and inputs */
+  --border: rgba(255, 255, 255, 0.09);
+  --input: #17243A;
+  --input-background: #17243A;
+  --switch-background: #3D4F68;
+  --ring: #01AAE4;
+
+  /* Charts */
+  --chart-1: #01AAE4;
+  --chart-2: #F5D251;
   --chart-3: #8FA3C8;
   --chart-4: #F4F6FA;
   --chart-5: #3D4F8C;
-  --sidebar: #0E1633;
+
+  /* Sidebar */
+  --sidebar: #0C1424;
   --sidebar-foreground: #F4F6FA;
-  --sidebar-primary: #F5D251;
-  --sidebar-primary-foreground: #0B1B59;
-  --sidebar-accent: rgba(245, 210, 81, 0.16);
-  --sidebar-accent-foreground: #F5D251;
+  --sidebar-primary: #01AAE4;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #17243A;
+  --sidebar-accent-foreground: #01AAE4;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #F5D251;
-  --premium: #F5D251;
-  --premium-foreground: #0B1B59;
-  --hero-from: #101A3C;
+  --sidebar-ring: #01AAE4;
+
+  /* Hero */
+  --hero-from: #0B1B40;
   --hero-via: #0B1B59;
-  --hero-to: #070F33;
+  --hero-to: #050916;
   --hero-fg: #FFFFFF;
-  --hero-muted: #8FA3C8;
-  --hero-grid: #F5D251;
-  --success: #34D399;
-  --surface-tint: rgba(255, 255, 255, 0.04);
+  --hero-muted: #A0AEC2;
+  --hero-grid: #01AAE4;
+
+  /* Surfaces */
+  --surface-tint: rgba(255, 255, 255, 0.035);
+
+  /* Tables */
+  --table-row: #111A2B;
+  --table-row-alt: #17243A;
+  --table-row-hover: #202F49;
 }
 
-.badge-premium,
-.role-tone-premium {
-  background-color: rgb(245 210 81 / 0.28) !important;
-  color: #0B1B59 !important;
-  border-color: rgb(11 27 89 / 0.2) !important;
-}
-
-html:not([data-mode="dark"]) .text-primary,
-html:not([data-mode="dark"]) [class*="text-primary\/"],
-html:not([data-mode="dark"]) .hover\:text-primary:hover {
-  color: #0B1B59 !important;
-}
-
-html[data-mode="dark"] .text-primary,
-html[data-mode="dark"] [class*="text-primary\/"],
-html[data-mode="dark"] .hover\:text-primary:hover {
-  color: #F5D251 !important;
-}
-
-.finx-card {
-  border-radius: 1.05rem;
-  border-color: transparent;
-  box-shadow: 0 12px 36px rgba(11, 27, 89, 0.07);
-  background-image: linear-gradient(#F5D251, #F5D251);
-  background-repeat: no-repeat;
-  background-size: 100% 3px;
-  background-position: top left;
-}
-
-.finx-hero {
-  border: none;
-  border-radius: 1.35rem;
-  box-shadow: 0 22px 50px rgba(11, 27, 89, 0.22);
-}
-
-.finx-hero::after {
-  content: "";
-  position: absolute;
-  right: -48px;
-  bottom: -56px;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  border: 1px solid rgba(245, 210, 81, 0.28);
-  pointer-events: none;
-}
-
-.finx-sidebar {
-  box-shadow: 8px 0 32px rgba(11, 27, 89, 0.06);
-}
-
-.finx-sidebar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: #F5D251;
-}
-
-.finx-topbar {
-  background: rgba(255, 255, 255, 0.86);
-  border-bottom-color: transparent;
-  box-shadow: 0 8px 24px rgba(11, 27, 89, 0.05);
-}
-
-.finx-nav-active {
-  border-right-width: 0 !important;
-  border-left: 3px solid #F5D251;
-  border-radius: 0 0.65rem 0.65rem 0;
-}
-
-.text-\[9px\] {
-  font-size: 11px;
-}
-.text-\[10px\] {
-  font-size: 12.5px;
-}
-.text-\[11px\] {
-  font-size: 13.5px;
-}
-.text-\[13px\] {
-  font-size: 14.5px;
-}
-.text-xs {
-  font-size: 13.5px;
-}
-.text-sm {
-  font-size: 15px;
-}
-
-tbody tr:nth-child(odd) {
-  background-color: #ffffff !important;
-}
-tbody tr:nth-child(even) {
-  background-color: #e8edf6 !important;
-}
-tbody tr:hover {
-  background-color: #dce4f0 !important;
-}
-
-html[data-mode="dark"] .finx-card {
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
-}
-
-html[data-mode="dark"] .finx-hero {
-  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.4);
-}
-
-html[data-mode="dark"] .finx-sidebar {
-  box-shadow: 8px 0 32px rgba(0, 0, 0, 0.35);
-}
-
-html[data-mode="dark"] .finx-topbar {
-  background: rgba(14, 22, 51, 0.88);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-}
-
-html[data-mode="dark"] tbody tr:nth-child(odd) {
-  background-color: #141c3a !important;
-}
-html[data-mode="dark"] tbody tr:nth-child(even) {
-  background-color: #1a2450 !important;
-}
-html[data-mode="dark"] tbody tr:hover {
-  background-color: #243066 !important;
-}
-
-html[data-mode="dark"] .finx-select,
-html[data-mode="dark"] .finx-select option,
-html[data-mode="dark"] select option {
-  color: #F4F6FA !important;
-  background-color: #141C3A !important;
-}
-
-html[data-mode="dark"] .text-emerald-400,
-html[data-mode="dark"] .text-emerald-700 {
-  color: #34d399;
-}
-html[data-mode="dark"] .text-red-400,
-html[data-mode="dark"] .text-red-600,
-html[data-mode="dark"] .text-red-700 {
-  color: #f87171;
-}
+/* =========================================================
+   4. TAILWIND THEME MAPPING
+   Tailwind CSS 4
+   ========================================================= */
 
 @theme inline {
+
+  /* Typography */
+  --font-sans: var(--font-family-sans);
+  --font-display: var(--font-family-display);
+
+  /* Typography scale */
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.875rem;
+
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.375rem;
+
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.75rem;
+
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.1;
+
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.05;
+
+  --text-7xl: 4.5rem;
+  --text-7xl--line-height: 1;
+
+  /* Colors */
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
+  --color-premium: var(--premium);
+  --color-premium-foreground: var(--premium-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
+
+  /* Charts */
+
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-premium: var(--premium);
-  --color-premium-foreground: var(--premium-foreground);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Sidebar */
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -290,79 +311,494 @@ html[data-mode="dark"] .text-red-700 {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-sans: "Arimo", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Barlow", "Arimo", ui-sans-serif, sans-serif;
+
+  /* Hero */
+
+  --color-hero-from: var(--hero-from);
+  --color-hero-via: var(--hero-via);
+  --color-hero-to: var(--hero-to);
+  --color-hero-fg: var(--hero-fg);
+  --color-hero-muted: var(--hero-muted);
+  --color-hero-grid: var(--hero-grid);
+
+  /* Radius */
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+/* =========================================================
+   5. GLOBAL BASE STYLES
+   ========================================================= */
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-sans);
-    transition: background-color 0.25s ease, color 0.25s ease;
+@layer base {
+
+  * {
+    @apply border-border;
   }
 
   html {
     font-size: var(--font-size);
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+
+    font-family: var(--font-family-sans);
+    font-size: 1rem;
+    font-weight: var(--font-weight-normal);
+    line-height: 1.6;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-family-display);
+    color: inherit;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.035em;
+    text-wrap: balance;
   }
 
   h1 {
-    font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.1;
+    font-weight: var(--font-weight-extrabold);
   }
 
   h2 {
-    font-size: var(--text-xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    line-height: 1.2;
+    font-weight: var(--font-weight-bold);
   }
 
   h3 {
-    font-size: var(--text-lg);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-size: clamp(1.375rem, 2vw, 1.75rem);
+    line-height: 1.3;
+    font-weight: var(--font-weight-bold);
   }
 
   h4 {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
+    font-size: 1.125rem;
+    line-height: 1.4;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  h5 {
+    font-size: 1rem;
     line-height: 1.5;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  h6 {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  p {
+    line-height: 1.65;
   }
 
   label {
-    font-size: var(--text-base);
+    font-size: 0.875rem;
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   button {
-    font-size: var(--text-base);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1.4;
   }
 
-  input {
-    font-size: var(--text-base);
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+    font-size: 0.9375rem;
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::selection {
+    color: #FFFFFF;
+    background: rgba(1, 170, 228, 0.8);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+
+  html[data-mode="dark"] {
+    color-scheme: dark;
+  }
+
+  html:not([data-mode="dark"]) {
+    color-scheme: light;
+  }
 }
+
+/* =========================================================
+   6. PREMIUM BADGES
+   ========================================================= */
+
+.badge-premium,
+.role-tone-premium {
+  background-color: rgba(245, 210, 81, 0.2);
+  color: #8A6900;
+  border: 1px solid rgba(245, 210, 81, 0.45);
+}
+
+html[data-mode="dark"] .badge-premium,
+html[data-mode="dark"] .role-tone-premium {
+  background-color: rgba(245, 210, 81, 0.15);
+  color: #F5D251;
+  border-color: rgba(245, 210, 81, 0.3);
+}
+
+/* =========================================================
+   7. FINX CARDS
+   ========================================================= */
+
+.finx-card {
+  position: relative;
+  overflow: hidden;
+
+  background-color: var(--card);
+  color: var(--card-foreground);
+
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+
+  box-shadow: 0 8px 28px rgba(11, 27, 89, 0.045);
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.finx-card:hover {
+  border-color: rgba(1, 170, 228, 0.3);
+  box-shadow: 0 14px 36px rgba(11, 27, 89, 0.08);
+}
+
+html[data-mode="dark"] .finx-card {
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+}
+
+html[data-mode="dark"] .finx-card:hover {
+  border-color: rgba(1, 170, 228, 0.35);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================
+   8. FINX HERO
+   ========================================================= */
+
+.finx-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+
+  color: var(--hero-fg);
+
+  background: linear-gradient(
+    120deg,
+    var(--hero-from) 0%,
+    var(--hero-via) 52%,
+    var(--hero-to) 100%
+  );
+
+  border: none;
+  border-radius: 1.25rem;
+
+  box-shadow: 0 22px 50px rgba(11, 27, 89, 0.18);
+}
+
+/* Subtle grid */
+
+.finx-hero::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+
+  background-image:
+    linear-gradient(
+      to right,
+      rgba(1, 170, 228, 0.055) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(1, 170, 228, 0.055) 1px,
+      transparent 1px
+    );
+
+  background-size: 48px 48px;
+
+  pointer-events: none;
+}
+
+/* Decorative circle */
+
+.finx-hero::after {
+  content: "";
+
+  position: absolute;
+  right: -65px;
+  bottom: -85px;
+
+  width: 260px;
+  height: 260px;
+
+  border-radius: 50%;
+  border: 1px solid rgba(1, 170, 228, 0.2);
+
+  box-shadow:
+    0 0 0 30px rgba(1, 170, 228, 0.025),
+    0 0 0 60px rgba(1, 170, 228, 0.018);
+
+  pointer-events: none;
+}
+
+html[data-mode="dark"] .finx-hero {
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================
+   9. FINX SIDEBAR
+   ========================================================= */
+
+.finx-sidebar {
+  position: relative;
+
+  background-color: var(--sidebar);
+  color: var(--sidebar-foreground);
+
+  border-right: 1px solid var(--sidebar-border);
+
+  box-shadow: 6px 0 24px rgba(11, 27, 89, 0.035);
+}
+
+.finx-sidebar::before {
+  content: "";
+
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  background: var(--finx-cyan);
+}
+
+html[data-mode="dark"] .finx-sidebar {
+  box-shadow: 6px 0 24px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================================================
+   10. FINX TOPBAR
+   ========================================================= */
+
+.finx-topbar {
+  background: rgba(255, 255, 255, 0.88);
+
+  border-bottom: 1px solid var(--border);
+
+  box-shadow: 0 4px 18px rgba(11, 27, 89, 0.035);
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+html[data-mode="dark"] .finx-topbar {
+  background: rgba(12, 20, 36, 0.9);
+
+  border-bottom-color: var(--border);
+
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+}
+
+/* =========================================================
+   11. ACTIVE NAVIGATION
+   ========================================================= */
+
+.finx-nav-active {
+  border-left: 3px solid var(--finx-cyan);
+  border-radius: 0 0.65rem 0.65rem 0;
+
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+
+  font-weight: var(--font-weight-semibold);
+}
+
+/* =========================================================
+   12. DATA TABLES
+   ========================================================= */
+
+tbody tr:nth-child(odd) {
+  background-color: var(--table-row);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--table-row-alt);
+}
+
+tbody tr:hover {
+  background-color: var(--table-row-hover);
+}
+
+th {
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.015em;
+}
+
+td {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   13. FORM ELEMENTS
+   ========================================================= */
+
+.finx-select {
+  color: var(--foreground);
+  background-color: var(--input);
+  border: 1px solid var(--border);
+  border-radius: 0.65rem;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.finx-select:focus {
+  border-color: var(--ring);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(1, 170, 228, 0.12);
+}
+
+html[data-mode="dark"] .finx-select,
+html[data-mode="dark"] .finx-select option,
+html[data-mode="dark"] select option {
+  color: var(--foreground);
+  background-color: var(--input);
+}
+
+/* =========================================================
+   14. STATUS COLORS
+   ========================================================= */
 
 .text-emerald-400 {
   color: #059669;
 }
+
 .text-red-400 {
-  color: #dc2626;
+  color: #DC2626;
 }
+
 .bg-emerald-500\/10,
 .bg-emerald-500\/20 {
-  background-color: rgb(5 150 105 / 0.1);
+  background-color: rgba(5, 150, 105, 0.1);
 }
+
 .border-emerald-500\/20,
 .border-emerald-500\/30 {
-  border-color: rgb(5 150 105 / 0.3);
+  border-color: rgba(5, 150, 105, 0.3);
+}
+
+html[data-mode="dark"] .text-emerald-400,
+html[data-mode="dark"] .text-emerald-700 {
+  color: #34D399;
+}
+
+html[data-mode="dark"] .text-red-400,
+html[data-mode="dark"] .text-red-600,
+html[data-mode="dark"] .text-red-700 {
+  color: #F87171;
+}
+
+/* =========================================================
+   15. RESPONSIVE TYPOGRAPHY
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size: 1.625rem;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    line-height: 1.35;
+  }
+
+  .finx-hero {
+    border-radius: 1rem;
+  }
+
+  .finx-hero::after {
+    width: 170px;
+    height: 170px;
+    right: -75px;
+    bottom: -75px;
+  }
+}
+
+/* =========================================================
+   16. ACCESSIBILITY & MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

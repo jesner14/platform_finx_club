@@ -1,5 +1,19 @@
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, X, Bell, Search, LogOut, Lock } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  House,
+  MessageCircle,
+  Megaphone,
+  Phone,
+  Search,
+  X,
+  Bell,
+  LogOut,
+  Lock,
+} from "lucide-react";
 import { MembershipProvider, useMembership } from "./membership/MembershipContext";
 import { LoginPage, ForceChangePasswordPage } from "./auth/LoginPage";
 import { PublicSite } from "./public/PublicSite";
@@ -402,8 +416,21 @@ function PublicGate() {
   return <PublicSite />;
 }
 
+function WhatsAppMark({ size = 18 }: { size?: number }) {
+  return (
+    <span className="relative inline-flex shrink-0" style={{ width: size, height: size }}>
+      <MessageCircle size={size} strokeWidth={2} />
+      <Phone size={Math.round(size * 0.42)} strokeWidth={2.5} className="absolute left-[29%] top-[29%]" />
+    </span>
+  );
+}
+
 function Root() {
   const { isAuthenticated, mustChangePassword } = useAuth();
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportTab, setSupportTab] = useState<"home" | "messages" | "news" | "help">("home");
+  const supportLink = "https://wa.me/221711459145";
+
   return (
     <>
       <style>{`
@@ -419,6 +446,170 @@ function Root() {
       {isAuthenticated
         ? (mustChangePassword ? <ForceChangePasswordPage /> : <AppShell />)
         : <PublicGate />}
+      {supportOpen && (
+        <section
+          role="dialog"
+          aria-label="Centre de contact FINX Club"
+          className="fixed bottom-[5.5rem] right-3 z-[100] flex h-[min(580px,calc(100dvh-7rem))] w-[min(390px,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-[1.4rem] border border-white/60 bg-[#F7F8FC] text-[#17213B] shadow-[0_28px_90px_-28px_rgba(7,17,38,0.55)] sm:bottom-24 sm:right-7"
+        >
+          <div className="relative shrink-0 overflow-hidden bg-[linear-gradient(135deg,#071536_0%,#0B1B59_58%,#173B76_100%)] px-5 pb-5 pt-4 text-white">
+            <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
+            <div className="relative flex items-center justify-between">
+              <img src="/logo-finx-white.png" alt="FINX Club" className="h-9 w-auto object-contain object-left" />
+              <div className="flex items-center -space-x-2">
+                {["F", "I", "C"].map((initial, index) => (
+                  <span
+                    key={initial}
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#10265E] text-[11px] font-bold text-white shadow-sm ${
+                      index === 0 ? "bg-[#01AAE4]" : index === 1 ? "bg-[#0B1B59]" : "bg-[#24385F]"
+                    }`}
+                  >
+                    {initial}
+                  </span>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSupportOpen(false)}
+                aria-label="Fermer le centre de contact"
+                className="ml-3 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-white/80 transition-colors hover:bg-white/15 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="relative mt-7 text-[15px] font-medium text-white/70">Bonjour <span aria-hidden="true">👋🏾</span></p>
+            <h2 className="relative mt-1 max-w-[19rem] text-[21px] font-bold leading-[1.2] tracking-[-0.025em] text-white">
+              Comment pouvons-nous vous aider ?
+            </h2>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+            {supportTab === "home" && (
+              <div className="space-y-2.5">
+                <p className="px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#748098]">
+                  Bienvenue chez FINX Club
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSupportTab("messages")}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[#0B1B59]/[0.07] bg-white p-3.5 text-left shadow-[0_4px_14px_-10px_rgba(11,27,89,0.35)] transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EAF7FC] text-[#087EA4]">
+                    <MessageCircle size={18} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[12px] font-semibold text-[#17213B]">Parler à notre équipe</span>
+                    <span className="mt-1 block truncate text-[11px] text-[#748098]">Nous sommes disponibles sur WhatsApp</span>
+                  </span>
+                  <ArrowUpRight size={16} className="shrink-0 text-[#087EA4]" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSupportTab("help")}
+                  className="flex w-full cursor-pointer items-center justify-between rounded-xl border border-[#0B1B59]/[0.07] bg-white px-4 py-3.5 text-left shadow-[0_4px_14px_-10px_rgba(11,27,89,0.35)] transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <span className="text-[12px] font-medium text-[#35425C]">Questions fréquentes</span>
+                  <ArrowUpRight size={16} className="text-[#087EA4]" />
+                </button>
+                <a
+                  href={supportLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0B1B59] px-4 text-[12px] font-semibold text-white shadow-[0_6px_16px_-8px_rgba(11,27,89,0.5)] transition hover:bg-[#14296D]"
+                >
+                  <WhatsAppMark size={17} />
+                  Contacter sur WhatsApp
+                  <ArrowUpRight size={14} className="ml-1 text-white/70" />
+                </a>
+              </div>
+            )}
+
+            {supportTab === "messages" && (
+              <div className="rounded-xl border border-[#0B1B59]/[0.07] bg-white p-4 shadow-[0_4px_14px_-10px_rgba(11,27,89,0.35)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#748098]">Contact direct</p>
+                <h3 className="mt-2 text-[14px] font-semibold text-[#17213B]">Échangez avec FINX Club</h3>
+                <p className="mt-1.5 text-[12px] leading-5 text-[#748098]">
+                  Notre équipe peut vous renseigner sur le Club, l’adhésion et les programmes.
+                </p>
+                <a
+                  href={supportLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#0B1B59] text-[12px] font-semibold text-white transition hover:bg-[#14296D]"
+                >
+                  <WhatsAppMark size={16} />
+                  Démarrer une conversation
+                  <ArrowUpRight size={14} />
+                </a>
+              </div>
+            )}
+
+            {supportTab === "news" && (
+              <div className="rounded-xl border border-[#0B1B59]/[0.07] bg-white p-4 shadow-[0_4px_14px_-10px_rgba(11,27,89,0.35)]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#748098]">Actualités</p>
+                <h3 className="mt-2 text-[14px] font-semibold text-[#17213B]">Suivez la vie du Club</h3>
+                <p className="mt-1.5 text-[12px] leading-5 text-[#748098]">
+                  Retrouvez nos événements, nos ressources et les nouveautés sur le site FINX Club.
+                </p>
+              </div>
+            )}
+
+            {supportTab === "help" && (
+              <div className="space-y-2.5">
+                <div className="rounded-xl border border-[#0B1B59]/[0.07] bg-white p-4 shadow-[0_4px_14px_-10px_rgba(11,27,89,0.35)]">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#748098]">Besoin d’aide ?</p>
+                  <h3 className="mt-2 text-[14px] font-semibold text-[#17213B]">Nous sommes à votre écoute.</h3>
+                  <p className="mt-1.5 text-[12px] leading-5 text-[#748098]">
+                    Écrivez-nous sur WhatsApp au +221 71 145 91 45.
+                  </p>
+                </div>
+                <a
+                  href={supportLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0B1B59] text-[12px] font-semibold text-white transition hover:bg-[#14296D]"
+                >
+                  <WhatsAppMark size={17} />
+                  Contacter le support
+                  <ArrowUpRight size={14} />
+                </a>
+              </div>
+            )}
+          </div>
+
+          <nav aria-label="Navigation du centre de contact" className="grid h-[68px] shrink-0 grid-cols-4 border-t border-[#0B1B59]/[0.07] bg-white px-2">
+            {[
+              { id: "home" as const, label: "Accueil", icon: House },
+              { id: "messages" as const, label: "Messages", icon: MessageCircle },
+              { id: "news" as const, label: "Actualités", icon: Megaphone },
+              { id: "help" as const, label: "Aide", icon: CircleHelp },
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setSupportTab(id)}
+                aria-pressed={supportTab === id}
+                className={`flex cursor-pointer flex-col items-center justify-center gap-1 text-[10px] font-medium transition-colors ${
+                  supportTab === id ? "text-[#0B1B59]" : "text-[#7B8190] hover:text-[#313B5C]"
+                }`}
+              >
+                <Icon size={18} strokeWidth={supportTab === id ? 2.3 : 1.8} />
+                {label}
+              </button>
+            ))}
+          </nav>
+        </section>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setSupportOpen((isOpen) => !isOpen)}
+        aria-label={supportOpen ? "Fermer le centre de contact" : "Ouvrir le centre de contact"}
+        aria-expanded={supportOpen}
+        className="fixed bottom-4 right-4 z-[101] inline-flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-[#0B1B59] text-white shadow-[0_8px_22px_-5px_rgba(11,27,89,0.55)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#173B76] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#01AAE4]/30 sm:bottom-6 sm:right-7"
+      >
+        {supportOpen ? <ChevronDown size={22} /> : <WhatsAppMark size={23} />}
+      </button>
     </>
   );
 }

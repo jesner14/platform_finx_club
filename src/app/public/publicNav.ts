@@ -8,6 +8,7 @@ export type PublicPage =
   | "opportunites"
   | "partenariats"
   | "ressources"
+  | "galerie"
   | "faq"
   | "contact"
   | "login"
@@ -30,6 +31,7 @@ const HASH_TO_PAGE: Record<string, PublicPage> = {
   partenariats: "partenariats",
   ressources: "ressources",
   actualites: "ressources",
+  galerie: "galerie",
   faq: "faq",
   contact: "contact",
   connexion: "login",
@@ -48,6 +50,7 @@ const PAGE_TO_HASH: Record<PublicPage, string> = {
   opportunites: "/opportunites",
   partenariats: "/partenariats",
   ressources: "/ressources",
+  galerie: "/galerie",
   faq: "/faq",
   contact: "/contact",
   login: "/connexion",
@@ -64,12 +67,20 @@ export function goPublic(page: PublicPage) {
 }
 
 export const MAIN_NAV: { page: PublicPage; label: string }[] = [
-  { page: "club", label: "Le Club" },
+  { page: "club", label: "Club" },
   { page: "investir", label: "Investir" },
-  { page: "evenements", label: "Événements" },
-  { page: "opportunites", label: "Opportunités" },
-  { page: "partenariats", label: "Partenariats" },
-  { page: "ressources", label: "Ressources" },
-  { page: "faq", label: "FAQ" },
-  { page: "contact", label: "Contact" },
+  { page: "partenariats", label: "Partenariat" },
 ];
+
+export const DISCOVER_NAV: { page: PublicPage; label: string; description: string }[] = [
+  { page: "evenements", label: "Événements", description: "Rencontres, ateliers et temps forts" },
+  { page: "opportunites", label: "Opportunités", description: "Projets et parcours à explorer" },
+  { page: "ressources", label: "Ressources", description: "Guides, actualités et contenus" },
+];
+
+export const LANGUAGE_OPTIONS = [
+  { code: "fr", label: "Français" },
+  { code: "en", label: "English" },
+] as const;
+
+export type PublicLanguage = (typeof LANGUAGE_OPTIONS)[number]["code"];
